@@ -18,6 +18,11 @@ app.use(express.urlencoded({ extended : true }));
 app.use(morgan("dev"));
 
 
+// Router Imports
+import userRouter from "./routes/user.routes.js";
+
+app.use("/api/v1/user", userRouter);
+
 export default app;
 
 
