@@ -16,7 +16,7 @@ const craftorSchema = new Schema({
         type : Number,
         default : 0
     },
-    propmts : [
+    prompts : [
         {
             type : Schema.Types.ObjectId,
             ref : "Prompt"
