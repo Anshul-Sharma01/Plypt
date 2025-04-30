@@ -3,7 +3,8 @@ import slugify from "slugify";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteMultipleFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { isValidObjectId } from "mongoose";
 
 const createPromptController = asyncHandler(async(req, res) => {
     const { title, description, content, price, category, model, tags} = req.body;
@@ -132,9 +133,202 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
     )
 });
 
+const changeVisibilityController = asyncHandler(async (req, res) => {
+    const { promptId } = req.params;
+    const { visibility } = req.body;
+    const userId = req?.user?._id;
+
+    if (!isValidObjectId(promptId)) {
+        throw new ApiError(400, "Invalid Prompt ID");
+    }
+
+    const allowedVisibilities = ["Public", "Private", "Draft"];
+    if (!allowedVisibilities.includes(visibility)) {
+        throw new ApiError(400, "Invalid visibility option");
+    }
+
+    const prompt = await Prompt.findById(promptId);
+
+    if (!prompt) {
+        throw new ApiError(404, "Prompt not found");
+    }
+
+    if (prompt.craftor.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not allowed to change visibility of this prompt");
+    }
+
+    prompt.visibility = visibility;
+    await prompt.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            { 
+                promptId, 
+                newVisibility: prompt.visibility 
+            },
+            "Visibility successfully updated"
+        )
+    );
+});
+
+const updatePromptDetailsController = asyncHandler(async(req, res) => {
+    const { promptId } = req.params;
+    const userId = req?.user?._id;
+
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+
+    const prompt = await Prompt.findById(promptId);
+
+    if(!prompt){
+        throw new ApiError(404, "Prompt not found");
+    }
+
+    if(prompt.craftor.toString() !== userId.toString()){
+        throw new ApiError(403, "You are not allowed to update this prompt");
+    }
+
+    const {
+        title,
+        description,
+        content,
+        category,
+        model,
+        tags,
+        price, 
+        visibility
+    } = req.body;
+
+    if(title && title.trim() !== prompt.title){
+        prompt.title = title;
+        prompt.slug = slugify(title, { lower : true, strict : true });
+        const existingSlug = await Prompt.findOne({ slug : prompt.slug });
+        if(existingSlug && existingSlug._id.toString() !== prompt._id.toString()){
+            throw new ApiError(400, "This title already exists, Choose a different one");
+        }
+    }
+    
+    if(description) prompt.description = description;
+    if(content) prompt.content = content;
+    if(category) prompt.category = category;
+    if(model) prompt.model = model;
+    if(Array.isArray(tags)) prompt.tags = tags;
+    if(price !== undefined) prompt.price = price;
+    if(visibility){
+        const allowedVisibilities = ["Public", "Private", "Draft"];
+        if(!allowedVisibilities.includes(visibility)){
+            throw new ApiError(400, "Invalid visibility option");
+        }
+        prompt.visibility = visibility;
+    }
+
+    await prompt.save();
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            prompt,
+            "Prompt updated successfully"
+        )
+    )
+    
+});
+
+
+const addPromptImageController = asyncHandler(async(req, res) =>{
+    const { promptId } = req.params;
+    const userId = req?.user?._id;
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+
+    const prompt = await Prompt.findById(promptId);
+    if(prompt.craftor.toString() !== userId.toString()){
+        throw new ApiError(403, "You are not allowed to update this prompt");
+    }
+    if(!req.file){
+        throw new ApiError(400, "No Image provided");
+    }
+    const uploadedImage = await uploadOnCloudinary(req.file.path);
+
+    if (!uploadedImage?.secure_url || !uploadedImage?.public_id){
+        throw new ApiError(400, "Image upload response is invalid");
+    }    
+
+    if(!uploadedImage){
+        throw new ApiError(400, "Error uploading image");
+    }
+
+    prompt.pictures.push({
+        public_id : uploadedImage?.public_id,
+        secure_url : uploadedImage?.secure_url
+    });
+
+    await prompt.save();
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            prompt,
+            "Prompt Added successfully"
+        )
+    );
+
+
+})
+
+const deletePromptImagesController = asyncHandler(async(req, res) => {
+    const { promptId } = req.params;
+    const userId = req.user?._id;
+    const { public_ids } = req.body;
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Prompt id is invalid");
+    }
+    if(!Array.isArray(public_ids) || public_ids.length === 0){
+        throw new ApiError(400, "Public IDs array is required");
+    }
+
+    const prompt = await Prompt.findById(promptId);
+    
+    if(prompt.craftor.toString() !== userId.toString()){
+        throw new ApiError(403, "You are not allowed to update this prompt");
+    }
+
+    const imagesToDelete = prompt.pictures.filter(img => public_ids.includes(img.public_id));
+    
+    if(imagesToDelete.length === 0){
+        throw new ApiError(404, "No matching images found to delete");
+    }
+
+    
+
+    try {
+        await deleteMultipleFromCloudinary(public_ids);
+    } catch (err) {
+        throw new ApiError(500, "Failed to delete Images from Cloudinary");
+    }
+
+    prompt.pictures = prompt.pictures.filter(img => !public_ids.includes(img.public_id));
+    await prompt.save();
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            prompt,
+            "Images deleted Successfully"
+        )
+    )
+})
+
 
 export { 
     createPromptController,
     getPromptBySlugController,
-    getAllPromptsController
+    getAllPromptsController,
+    changeVisibilityController,
+    updatePromptDetailsController,
+    deletePromptImagesController,
+    addPromptImageController
 }
