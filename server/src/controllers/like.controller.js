@@ -65,8 +65,62 @@ const getPromptLikesController = asyncHandler(async(req, res) => {
     )
 })
 
+const getTopLikedPromptsController = asyncHandler(async(req, res) => {
+    const topLikedPrompts = await Like.aggregate([
+        {
+            $group : {
+                _id : "$prompt",
+                likeCount : { $sum : 1 }
+            }
+        },
+        {
+            $sort : { likeCount : -1 }
+        },
+        {
+            $limit : 10
+        },
+        {
+            $lookup : {
+                from : "prompts",
+                localField : "_id",
+                foreignField : "_id",
+                as : "prompt"
+            }
+        },
+        {
+            $match : {
+                "prompt" : { $ne : null }
+            }
+        },  
+        {
+            $unwind : "$prompt"
+        },
+        {
+            $project : {
+                _id : 0,
+                promptId : "$_id",
+                likeCount : 1,
+                prompt : {
+                    title : "$prompt.title",
+                    content : "$prompt.content",
+                    createdAt : "$prompt.createdAt",
+                    price : "$prompt.price"
+                }
+            }
+        }
+    ]);
+    res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            topLikedPrompts,
+            "Successfully fetched the top liked prompts"
+        )
+    )
+})
 
 export {
     toggleLikeController,
-    getPromptLikesController
+    getPromptLikesController,
+    getTopLikedPromptsController
 }
