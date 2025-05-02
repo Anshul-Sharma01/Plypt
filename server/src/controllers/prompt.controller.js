@@ -330,5 +330,5 @@ export {
     changeVisibilityController,
     updatePromptDetailsController,
     deletePromptImagesController,
-    addPromptImageController
+    addPromptImageController,
 }

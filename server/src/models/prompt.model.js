@@ -1,4 +1,4 @@
-import mongoose, { mongo, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const promptSchema = new Schema({
     title : {
@@ -50,18 +50,6 @@ const promptSchema = new Schema({
             secure_url : { type : String }
         }
     ],
-    purchases : [
-        {
-            buyer : {
-                type : mongoose.Schema.Types.ObjectId,
-                ref : "User"
-            },
-            purchaseDate : {
-                type : Date,
-                default : Date.now
-            }
-        }
-    ],
     rating : {
         type : Number,
         default : 0,
@@ -69,7 +57,7 @@ const promptSchema = new Schema({
     reviews : [
         {
             type : mongoose.Schema.Types.ObjectId,
-            ref : "Reviews"
+            ref : "Review"
         }
     ],
     visibility : {
