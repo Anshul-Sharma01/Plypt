@@ -1,0 +1,73 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { isValidObjectId } from "mongoose";
+import { Bookmark } from "../models/bookmark.model.js";
+
+const toggleBookmarkController = asyncHandler(async(req, res) => {
+    const userId = req.user?._id;
+    const { promptId } = req.params;
+
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+
+    const bookmarkDocument = await Bookmark.findOne({ user : userId, prompt : promptId});
+    
+    if(bookmarkDocument){
+        await bookmarkDocument.deleteOne();
+        return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    bookmarked : false,
+                },
+                "Successfully deleted the bookmark document"
+            )
+        )
+    }else{
+        const newBookmark = await Bookmark.create({
+            user : userId,
+            prompt : promptId
+        });
+        return res.status(201)
+        .json(
+            new ApiResponse(
+                201,
+                {
+                    bookmarked : true,
+                    bookmarkedId : newBookmark._id
+                },
+                "Successfully created the bookmark document"
+            )
+        )
+    }
+
+})
+
+const getUserBookmarksController = asyncHandler(async (req, res) => {
+    const userId = req.user?._id;
+
+    const userBookmarks = await Bookmark.find({ user: userId }).populate("prompt"); 
+    const bookmarkCount = userBookmarks.length;
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                bookmarks: bookmarkCount,
+                userBookmarks
+            },
+            bookmarkCount === 0 ? "No Bookmarked Prompts Yet" : "Fetched bookmarks successfully"
+        )
+    );
+});
+
+
+
+export { 
+    toggleBookmarkController,
+    getUserBookmarksController
+}
+
