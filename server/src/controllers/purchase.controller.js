@@ -3,15 +3,30 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { isValidObjectId } from "mongoose";
 import { Purchase } from "../models/Purchase.model.js";
+import { Transaction } from "../models/transaction.model.js";
+import razorpayService from "../utils/razorpayService.js";
+import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
+const generateOrderId = () => `order_${uuidv4()}`;
 
 const purchasePromptController = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
     const { promptId } = req.params;
+    const { amt, currency } = req.body;
 
     if (!isValidObjectId(promptId)) {
         throw new ApiError(400, "Invalid Prompt Id");
     }
+    
+    if(!amt || !currency){
+        throw new ApiError(400, "All fields are mandatory");
+    }
+
+    if(!["INR", "RUB" , "USD", "GBP", "EUR", "JPY"].includes(currency)){
+        throw new ApiError(400, "Invalid currency");
+    }
+
 
     const alreadyPurchased = await Purchase.findOne({ user: userId, prompt: promptId });
     if (alreadyPurchased) {
@@ -20,13 +35,38 @@ const purchasePromptController = asyncHandler(async (req, res) => {
         );
     }
 
-    const purchase = await Purchase.create({ user: userId, prompt: promptId });
+    const receipt = generateOrderId();
+    const amount = amt * 100;
+
+    const paymentOrder = await razorpayService.createOrder(amount, currency, receipt);
+
+    const purchase = await Purchase.create({ 
+        user : userId,
+        prompt : promptId,
+        amount,
+        currency,
+        razorpayOrderId : paymentOrder.id,
+    });
+
+
+    const newTransaction = await Transaction.create({
+        orderId : receipt,
+        razorpayOrderId : paymentOrder.id,
+        isVerified : false
+    })
+
+    purchase.transaction = newTransaction;
+    await purchase.save();
 
     return res.status(201).json(
         new ApiResponse(
             201,
-            { purchaseId: purchase._id, promptId },
-            "Prompt purchased successfully"
+            { 
+                purchaseId: purchase._id, 
+                transaction : newTransaction,
+                promptId,  
+            },
+            "Prompt purchase initiated successfully"
         )
     );
 });
@@ -49,8 +89,58 @@ const getUserPurchasedPromptsController = asyncHandler(async (req, res) => {
     );
 });
 
+const completePurchaseController = asyncHandler(async(req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if(!razorpay_order_id || !razorpay_payment_id || !razorpay_signature){
+        throw new ApiError(400, "All fields are mandatory for payment verification");
+    }
+
+    const purchase = await Purchase.findOne({ razorpayOrderId : razorpay_order_id });
+
+    if(!purchase){
+        throw new ApiError(404, "Order not found");
+    }
+
+    purchase.status = "Pending";
+
+    const generatedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest("hex");
+
+    if(generatedSignature !== razorpay_signature){
+        throw new ApiError(400, "Invalid Payment Signature");
+    }
+
+    purchase.status = "Completed";
+
+    const transaction = await Transaction.findOne({ razorpayOrderId : razorpay_order_id });
+
+    transaction.razorpayPaymentId = razorpay_payment_id;
+    transaction.signature = razorpay_signature;
+    transaction.isVerified = true;
+
+    await purchase.save();
+    await transaction.save();
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                order : purchase,
+            },
+            "Successfully completed the purchase"
+        )
+    )
+
+})
+
+
 
 export {
     purchasePromptController,
-    getUserPurchasedPromptsController
+    getUserPurchasedPromptsController,
+    completePurchaseController
 }
