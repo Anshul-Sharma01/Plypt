@@ -69,4 +69,6 @@ const promptSchema = new Schema({
     timestamps : true
 })
 
+
+
 export const Prompt = mongoose.model("Prompt", promptSchema);

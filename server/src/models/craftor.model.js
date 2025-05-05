@@ -22,16 +22,6 @@ const craftorSchema = new Schema({
             ref : "Prompt"
         }
     ],
-    reviews : [
-        {
-            type : Schema.Types.ObjectId,
-            ref : "Review"
-        }
-    ],
-    rating : {
-        type : Number,
-        default : 0
-    },
     paymentDetails : {
         razorpayId : String,
         bankAccount : String,
