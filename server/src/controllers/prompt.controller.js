@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { deleteMultipleFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
+import { Craftor } from "../models/craftor.model.js";
 
 const createPromptController = asyncHandler(async(req, res) => {
     const { title, description, content, price, category, model, tags} = req.body;
@@ -40,6 +41,11 @@ const createPromptController = asyncHandler(async(req, res) => {
     }else{
         throw new ApiError(400, "Atleast one prompt output image is required for publishing a prompt");
     }
+    
+    const craftor = await Craftor.findOne({ user : userId });
+    if(!craftor){
+        throw new ApiError(400, "Craftor Id not activated yet, first activate that");
+    }
 
     const prompt = await Prompt.create({
         title,
@@ -53,6 +59,11 @@ const createPromptController = asyncHandler(async(req, res) => {
         tags,
         pictures : images,
     })
+
+    craftor.prompts.push(prompt);
+    await craftor.save();
+
+
 
     return res.status(201)
     .json(

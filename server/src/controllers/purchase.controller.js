@@ -7,6 +7,7 @@ import { Transaction } from "../models/transaction.model.js";
 import razorpayService from "../utils/razorpayService.js";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
+import { Craftor } from "../models/craftor.model.js";
 
 const generateOrderId = () => `order_${uuidv4()}`;
 
@@ -123,6 +124,14 @@ const completePurchaseController = asyncHandler(async(req, res) => {
 
     await purchase.save();
     await transaction.save();
+
+    const promptId = purchase.prompt;
+    const craftor = await Craftor.findOne({ 
+        prompts : { $elemMatch : { $eq : promptId }}
+    })
+
+    craftor.totalPromptsSold = craftor.totalPromptsSold + 1;
+    await craftor.save();
 
     return res.status(200)
     .json(
