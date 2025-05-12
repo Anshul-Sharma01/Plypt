@@ -7,7 +7,7 @@ import slugify from "slugify";
 
 const activateCraftorController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
-    const { razorpayId, bankAccount, upiId } = req.body;
+    const { userPaymentDetails } = req.body;
 
     const user = await User.findById(userId);
     if(!user){
@@ -17,14 +17,14 @@ const activateCraftorController = asyncHandler(async(req, res) => {
 
     const generatedSlug = slugify(username, { lower : true, strict : true });
 
-    if(!razorpayId && !bankAccount && !upiId){
+    if(!userPaymentDetails.razorpayId && !userPaymentDetails.bankAccount && !userPaymentDetails.upiId){
         throw new ApiError(400, "Atleast provide one payment option");
     }
 
     let paymentDetails = {};
-    if(razorpayId) paymentDetails.razorpayId = razorpayId;
-    if(bankAccount) paymentDetails.bankAccount = bankAccount;
-    if(upiId) paymentDetails.upiId = upiId;
+    if(userPaymentDetails?.razorpayId) paymentDetails.razorpayId = userPaymentDetails?.razorpayId;
+    if(userPaymentDetails?.bankAccount) paymentDetails.bankAccount = userPaymentDetails?.bankAccount;
+    if(userPaymentDetails?.upiId) paymentDetails.upiId = userPaymentDetails?.upiId;
 
     const craftor = await Craftor.create({
         user : userId,
@@ -49,11 +49,55 @@ const activateCraftorController = asyncHandler(async(req, res) => {
 
 })
 
+const getCraftorProfile = asyncHandler(async(req, res) => {
+    const slug = req.params?.slug;
+    if(!slug){
+        throw new ApiError(400, "Please provide the slug identifier");
+    }
+    const craftor = await Craftor.findOne({ slug }).populate("user");
+    if(!craftor){
+        throw new ApiError(404, "Craftor not found");
+    }
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            craftor,
+            "Craftor profile fetched successfully"
+        )
+    )
+})
+
+const updatePaymentDetails = asyncHandler(async(req, res) => {
+    const slug = req.params?.slug;
+    const { paymentDetails }= req.body;
+    if(!slug){
+        throw new ApiError(400, "Please provide the slug identifier");
+    }
+    const craftor = await Craftor.findOne({ slug });
+    if(!craftor){
+        throw new ApiError(404, "Craftor not found");
+    }
+
+    craftor.paymentDetails = paymentDetails;
+    await craftor.save();
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            craftor,
+            "Craftor Payment Details updated Successfully"
+        )
+    )
+    
+})
 
 
 
 export {
-    activateCraftorController
+    activateCraftorController,
+    getCraftorProfile,
+    updatePaymentDetails
 }
 
 

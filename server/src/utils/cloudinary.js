@@ -20,6 +20,8 @@ const uploadOnCloudinary = async(localFilePath) => {
         const cloudinaryResponse = await cloudinary.uploader.upload(localFilePath, {
             resource_type : "image",
             folder : "Plypt"
+        }).catch((err) => {
+            console.error(`Error occurredat cloudinary service : ${err}`);
         })
         if(fs.existsSync(localFilePath)){
             fs.unlinkSync(localFilePath);

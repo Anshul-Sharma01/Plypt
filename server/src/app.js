@@ -20,8 +20,10 @@ app.use(morgan("dev"));
 
 // Router Imports
 import userRouter from "./routes/user.routes.js";
+import craftorRouter from "./routes/craftor.routes.js";
 
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/craftor", craftorRouter);
 
 export default app;
 

@@ -89,7 +89,7 @@ const loginUserController = asyncHandler(async(req, res) => {
         $or : [{username : inputValue}, {email : inputValue}]
     }).select("+password");
 
-    if(!checkUser){
+    if(!userExists){
         throw new ApiError(400, "User or Email not found");
     }
 
@@ -98,7 +98,7 @@ const loginUserController = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Invalid Password");
     }
 
-    const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(checkUser);
+    const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(userExists);
 
     const loginUser = await User.findById(userExists._id);
     if(!loginUser){
