@@ -2,6 +2,7 @@ import app from "./app.js";
 import http from "http";
 import { connectDB } from "./config/db.js";
 import { Server } from "socket.io";
+import { registerBidHandlers } from "./socket/bidSocket.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -16,6 +17,8 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log("New Client connected : " + socket.id);
+
+    registerBidHandlers(io, socket);
 
     socket.on("disconnect", () => {
         console.log("Client Disconnected : " + socket.id);

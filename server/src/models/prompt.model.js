@@ -64,6 +64,10 @@ const promptSchema = new Schema({
         type : String,
         enum : ["Public", "Private", "Draft"],
         default : "draft"
+    },
+    currentBid : {
+        type : Number, 
+        default : 0
     }
 }, {
     timestamps : true
