@@ -47,8 +47,36 @@ const deleteCommentController = asyncHandler(async(req, res) => {
     )
 })
 
+const fetchAllCommentsController = asyncHandler(async(req, res) => {
+    const { promptId } = req.params;
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+    const comments = await Comment.find({ prompt : promptId });
+    if(prompt.length === 0){
+        return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {},
+                "No comments yet !!"
+            )
+        )
+    }
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            comments,
+            "All Comments fetched successfully"
+        )
+    )
+})
+
 
 export {
     addCommentController,
-    deleteCommentController
+    deleteCommentController,
+    fetchAllCommentsController
 }
