@@ -1,3 +1,4 @@
+import redisClient from "../config/redisClient.js";
 import { Message } from "../models/message.model.js";
 
 export const registerChatHandlers = (io, socket) => {
@@ -18,6 +19,8 @@ export const registerChatHandlers = (io, socket) => {
                 timeStamp : message.timeStamp
             });
 
+            await redisClient.publish(`chat : ${roomId}`, JSON.stringify(message));
+
         }catch(err){
             console.error("Chat Error : ", err);
             socket.emit("error", "Failed to send message");
@@ -25,6 +28,6 @@ export const registerChatHandlers = (io, socket) => {
     })
 
     socket.on("leaveChatRoom", ({ roomId }) => {
-        socket.leave(roomId);
+        socket.leave(roomId)
     })
 }

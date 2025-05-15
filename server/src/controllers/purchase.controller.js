@@ -8,6 +8,7 @@ import razorpayService from "../utils/razorpayService.js";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { Craftor } from "../models/craftor.model.js";
+import redisClient from "../config/redisClient.js";
 
 const generateOrderId = () => `order_${uuidv4()}`;
 
@@ -26,6 +27,11 @@ const purchasePromptController = asyncHandler(async (req, res) => {
 
     if(!["INR", "RUB" , "USD", "GBP", "EUR", "JPY"].includes(currency)){
         throw new ApiError(400, "Invalid currency");
+    }
+
+    const winnerId = await redisClient.get(`winner : ${promptId}`);
+    if(!winnerId || winnerId !== userId.toString()){
+        throw new ApiError(403, "Only the auction winner can purchase this prompt");
     }
 
 
