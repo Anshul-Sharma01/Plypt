@@ -6,6 +6,7 @@ import { Purchase } from "../models/Purchase.model.js";
 import { Transaction } from "../models/transaction.model.js";
 import razorpayService from "../utils/razorpayService.js";
 import crypto from "crypto";
+import { Prompt } from "../models/prompt.model.js";
 import { v4 as uuidv4 } from "uuid";
 import { Craftor } from "../models/craftor.model.js";
 import redisClient from "../config/redisClient.js";
@@ -29,9 +30,16 @@ const purchasePromptController = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid currency");
     }
 
-    const winnerId = await redisClient.get(`winner : ${promptId}`);
-    if(!winnerId || winnerId !== userId.toString()){
-        throw new ApiError(403, "Only the auction winner can purchase this prompt");
+    const prompt = await Prompt.findById(promptId);
+    if(!prompt){
+        throw new ApiError(404, "Prompt not found");
+    }
+
+    if(prompt.isBiddable){
+        const winnerId = await redisClient.get(`winner : ${promptId}`);
+        if(!winnerId || winnerId !== userId.toString()){
+            throw new ApiError(403, "Only the auction winner can purchase this prompt");
+        }
     }
 
 

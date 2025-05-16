@@ -65,6 +65,10 @@ const promptSchema = new Schema({
         enum : ["Public", "Private", "Draft"],
         default : "draft"
     },
+    isBiddable : {
+        type : Boolean,
+        default : false
+    },
     currentBid : {
         type : Number, 
         default : 0

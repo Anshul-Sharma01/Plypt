@@ -43,6 +43,13 @@ export const registerBidHandlers = (io, socket) => {
             const prompt = await Prompt.findById(promptId);
             if(!prompt) return;
 
+            if(!prompt.isBiddable){
+                socket.emit("bidRejected", {
+                    message : "This prompt is not open for bidding"
+                });
+                return;
+            }
+
             if(bidAmount <= prompt.currentBid){
                 socket.emit("bidRejected", {
                     message : "Bid must be higher than current bid"
