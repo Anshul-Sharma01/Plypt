@@ -5,7 +5,7 @@ import redisClient from "../config/redisClient.js";
 
 const AUCTION_DURATION = 60 * 5;
 
-const handleAuctionEnd = async(io, promptId) => {
+export const handleAuctionEnd = async(io, promptId) => {
     const latestBid = await Bid.findOne({ prompt : promptId }).sort({ createdAt : -1 });
 
     if(!latestBid){
@@ -19,6 +19,8 @@ const handleAuctionEnd = async(io, promptId) => {
     const { user, amount } = latestBid;
 
     await redisClient.set(`winner : ${promptId}`, user.toString());
+    await redisClient.set(`auctionEnded : ${promptId}`, true);
+
     io.to(promptId).emit("auctionEnded", {
         promptId,
         winnerId : user,
@@ -47,6 +49,30 @@ export const registerBidHandlers = (io, socket) => {
                 socket.emit("bidRejected", {
                     message : "This prompt is not open for bidding"
                 });
+                return;
+            }
+
+            const auctionEnded = await redisClient.get(`auctionEnded : ${promptId}`);
+            if(auctionEnded){
+                socket.emit("bidRejected",{
+                    message : "Auction has ended"
+                });
+                return;
+            }
+
+            const lastBid = await Bid.findOne({ prompt : promptId }).sort({ createdAt : -1 });
+
+            if(lastBid && lastBid.user.toString() === userId){
+                socket.emit("bidRejected", {
+                    message : "You cannot place consecutive bids"
+                })
+            }
+            const lockKey = `lock:bid:${promptId}`;
+            const lockAcquired = await redisClient.set(lockKey, userId, {NX : true, EX : 5});
+            if(!lockAcquired){
+                socket.emit("bidRejected", {
+                    message : "Another bid is being processed. Please try again "
+                })
                 return;
             }
 
@@ -80,6 +106,8 @@ export const registerBidHandlers = (io, socket) => {
                 await redisClient.setEx(`auction : ${promptId}`, AUCTION_DURATION, userId);
                 setTimeout(() => handleAuctionEnd(io, promptId), AUCTION_DURATION * 1000);
             }
+
+            await redisClient.del(lockKey);
 
         }catch(err){
             console.error(`Bid Error : ${err}`);

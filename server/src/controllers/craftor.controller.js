@@ -4,6 +4,10 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 import { Craftor } from "../models/craftor.model.js";
 import slugify from "slugify";
+import { isValidObjectId } from "mongoose";
+import { Prompt } from "../models/prompt.model.js";
+import redisClient from "../config/redisClient.js";
+import { handleAuctionEnd } from "../socket/bidSocket.js";
 
 const activateCraftorController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
