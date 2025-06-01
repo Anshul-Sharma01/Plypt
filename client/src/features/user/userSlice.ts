@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import axiosInstance from '../../Helpers/axiosInstance';
+import axiosInstance from '../../helpers/axiosInstance';
 import toast from 'react-hot-toast';
 
 const updateLocalStorage = (user: any) => {
