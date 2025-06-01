@@ -1,94 +1,104 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import axios, { type InternalAxiosRequestConfig, type AxiosResponse, type AxiosError } from "axios";
 import Cookies from "js-cookie";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
 const axiosInstance = axios.create({
-    baseURL: BASE_URL,
-    withCredentials: true,
+  baseURL: BASE_URL,
+  withCredentials: true,
 });
 
 let isRefreshing = false;
 
 axiosInstance.interceptors.request.use(
-    async (config: AxiosRequestConfig): Promise<AxiosRequestConfig> => {
-        const accessToken = Cookies.get('accessToken');
-        if (accessToken && config.headers) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return config;
-    },
-    (error: any) => {
-        return Promise.reject(error);
+  async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
+    const accessToken = Cookies.get("accessToken");
+    if (accessToken && config.headers) {
+      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
     }
+    return config;
+  },
+  (error: any) => Promise.reject(error)
 );
 
 interface RefreshTokenResponse {
-    accessToken: string;
-    refreshToken: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 axiosInstance.interceptors.response.use(
-    (response: AxiosResponse) => response,
-    async (error: AxiosError) => {
-        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-
-        if (error.response?.status === 403 && !originalRequest._retry) {
-            if (isRefreshing) {
-                // Wait for token to be refreshed before retrying original request
-                return new Promise<AxiosResponse>((resolve) => {
-                    const interval = setInterval(() => {
-                        const accessToken = Cookies.get('accessToken');
-                        if (accessToken) {
-                            clearInterval(interval);
-                            if (originalRequest.headers) {
-                                originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
-                            }
-                            resolve(axiosInstance(originalRequest));
-                        }
-                    }, 100);
-                });
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            return new Promise<AxiosResponse>(async (resolve, reject) => {
-                try {
-                    const refreshToken = Cookies.get('refreshToken');
-                    if (!refreshToken) throw new Error("No refresh token available");
-
-                    const response = await axiosInstance.post<RefreshTokenResponse>('/user/refresh-token', { refreshToken });
-
-                    const newAccessToken = response.data.accessToken;
-                    const newRefreshToken = response.data.refreshToken;
-
-                    Cookies.set('accessToken', newAccessToken);
-                    Cookies.set('refreshToken', newRefreshToken);
-
-                    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-                    if (originalRequest.headers) {
-                        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-                    }
-
-                    resolve(axiosInstance(originalRequest));
-                } catch (err) {
-                    reject(err);
-                } finally {
-                    isRefreshing = false;
-                }
-            });
-        } else if (error.response?.status === 401) {
-            window.alert("Please Log In again..");
-            localStorage.clear();
-            Cookies.remove('accessToken');
-            Cookies.remove('refreshToken');
-            console.log("Redirected..");
-            window.location.href = import.meta.env.VITE_LOGIN_URL as string;
-        }
-
-        return Promise.reject(error);
+  (response: AxiosResponse) => response,
+  async (error: unknown) => {
+    if (!axios.isAxiosError(error)) {
+      return Promise.reject(error);
     }
+
+    const axiosError = error as AxiosError;
+    const originalRequest = axiosError.config as InternalAxiosRequestConfig & { _retry?: boolean } | undefined;
+
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    if (axiosError.response?.status === 403 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Wait for token refresh and retry original request
+        return new Promise<AxiosResponse>((resolve) => {
+          const interval = setInterval(() => {
+            const accessToken = Cookies.get("accessToken");
+            if (accessToken) {
+              clearInterval(interval);
+              if (originalRequest.headers) {
+                (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
+              }
+              resolve(axiosInstance(originalRequest));
+            }
+          }, 100);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      return new Promise<AxiosResponse>(async (resolve, reject) => {
+        try {
+          const refreshToken = Cookies.get("refreshToken");
+          if (!refreshToken) throw new Error("No refresh token available");
+
+          const response = await axiosInstance.post<RefreshTokenResponse>(
+            "/user/refresh-token",
+            { refreshToken }
+          );
+
+          const newAccessToken = response.data.accessToken;
+          const newRefreshToken = response.data.refreshToken;
+
+          Cookies.set("accessToken", newAccessToken);
+          Cookies.set("refreshToken", newRefreshToken);
+
+          axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
+          if (originalRequest.headers) {
+            (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${newAccessToken}`;
+          }
+
+          resolve(axiosInstance(originalRequest));
+        } catch (err) {
+          reject(err);
+        } finally {
+          isRefreshing = false;
+        }
+      });
+    } else if (axiosError.response?.status === 401) {
+      window.alert("Please Log In again..");
+      localStorage.clear();
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      console.log("Redirected..");
+      window.location.href = import.meta.env.VITE_LOGIN_URL as string;
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;
