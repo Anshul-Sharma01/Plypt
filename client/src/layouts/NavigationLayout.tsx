@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
+import Footer from './Footer';
 
 const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -38,6 +39,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         </div>
       </nav>
       <main className="w-full h-full pt-16">{children}</main>
+      <Footer/>
     </div>
   );
 };

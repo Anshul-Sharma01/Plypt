@@ -19,7 +19,7 @@ const HomePage = () => {
 
   const GridBackground = () => (
     <div className="absolute inset-0 opacity-20 dark:opacity-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,_rgb(255_255_255)_1px,_transparent_0)]"
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
            style={{ backgroundSize: '40px 40px' }}>
       </div>
     </div>
@@ -113,11 +113,6 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-            <div className="w-6 h-10 border-2 border-black dark:border-white rounded-full flex justify-center">
-              <div className="w-1 h-3 rounded-full mt-2 animate-bounce bg-black dark:bg-white" />
-            </div>
-          </div>
         </section>
 
         {/* Features Section */}
