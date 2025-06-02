@@ -25,6 +25,9 @@ const generateAccessTokenAndRefreshToken = async(user) => {
 
 const registerUserController = asyncHandler(async(req, res) => {
     const { name, email, username, password, bio } = req.body;
+    if(!name || !email || !username || !password || !bio){
+        throw new ApiError(400, "All Fields are mandatory");
+    }
 
     usernameValidation(username);
     emailValidation(email);
@@ -39,6 +42,8 @@ const registerUserController = asyncHandler(async(req, res) => {
     if(emailExists){
         throw new ApiError(400, "Email already exists");
     }
+
+    // console.log(req);
 
     if(req.file){
         const filePath = req.file?.path;
@@ -55,6 +60,7 @@ const registerUserController = asyncHandler(async(req, res) => {
                 secure_url : avatar?.secure_url
             }
         })
+
 
         const createdUser = await User.findById(user._id);
         if(!createdUser){
@@ -75,8 +81,6 @@ const registerUserController = asyncHandler(async(req, res) => {
                 "User Registered Successfully"
             )
         )
-
-
     }else{
         throw new ApiError(400, "Avatar file is required");
     }

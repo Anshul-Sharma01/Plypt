@@ -8,11 +8,10 @@ const updateLocalStorage = (user: any) => {
   localStorage.setItem('userRole', user?.role);
 };
 
-const toastHandler = (promise: Promise<any>, loadingMsg: string, successMsg: string, errorMsg: string) => {
+const toastHandler = (promise: Promise<any>, loadingMsg: string, successMsg: string) => {
   return toast.promise(promise, {
     loading: loadingMsg,
     success: (data) => data?.message || successMsg,
-    error: errorMsg,
   });
 };
 
@@ -35,7 +34,7 @@ const initialState: UserState = {
 export const createUserAccount = createAsyncThunk('auth/register', async (data: any, { rejectWithValue }) => {
   try {
     const promise = axiosInstance.post('user/register', data);
-    toastHandler(promise, 'Creating your account...', 'Account created!', 'Failed to create account!');
+    toastHandler(promise, 'Creating your account...', 'Account created!');
     const res = await promise;
     return res.data;
   } catch (err: any) {
@@ -46,7 +45,7 @@ export const createUserAccount = createAsyncThunk('auth/register', async (data: 
 export const authenticateUser = createAsyncThunk('auth/login', async (data: any, { rejectWithValue }) => {
   try {
     const promise = axiosInstance.post('user/login', data);
-    toastHandler(promise, 'Authenticating...', 'Login successful!', 'Failed to login!');
+    toastHandler(promise, 'Authenticating...', 'Login successful!');
     const res = await promise;
     return res.data;
   } catch (err: any) {
@@ -57,7 +56,7 @@ export const authenticateUser = createAsyncThunk('auth/login', async (data: any,
 export const logoutUserAccount = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
     const promise = axiosInstance.post('user/logout');
-    toastHandler(promise, 'Logging out...', 'Logged out!', 'Failed to log out!');
+    toastHandler(promise, 'Logging out...', 'Logged out!');
     const res = await promise;
     return res.data;
   } catch (err: any) {
@@ -91,6 +90,7 @@ const userSlice = createSlice({
         state.isLoggedIn = false;
         state.userData = {};
         state.userRole = '';
+        toast.error(action.payload as string)
       })
       .addCase(authenticateUser.pending, (state) => {
         state.loading = true;
@@ -112,6 +112,7 @@ const userSlice = createSlice({
         state.isLoggedIn = false;
         state.userData = {};
         state.userRole = '';
+        toast.error(action.payload as string);
       })
       .addCase(logoutUserAccount.fulfilled, (state) => {
         localStorage.clear();

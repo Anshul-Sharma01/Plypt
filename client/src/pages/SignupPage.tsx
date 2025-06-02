@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, User, Mail, Lock, Camera, ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { createUserAccount } from '../features/user/userSlice';
+import type { AppDispatch } from '../store';
 
 const SignupPage: React.FC = () => {
   // Mock state for demo - replace with actual Redux logic
   const loading = false;
   const error = null;
   const isLoggedIn = false;
+  const dispatch = useDispatch<AppDispatch>();
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -19,7 +23,7 @@ const SignupPage: React.FC = () => {
     password: '',
     confirmPassword: '',
     bio: '',
-    profilePicture: null as File | null,
+    avatar: null as File | null,
   });
 
   const [passwordValidation, setPasswordValidation] = useState({
@@ -37,7 +41,7 @@ const SignupPage: React.FC = () => {
     }
   }, [isLoggedIn]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const password = form.password;
     setPasswordValidation({
       length: password.length >= 8,
@@ -55,7 +59,7 @@ const SignupPage: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setForm({ ...form, profilePicture: file });
+      setForm({ ...form, avatar: file });
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImage(e.target?.result as string);
@@ -64,13 +68,36 @@ const SignupPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       return;
     }
-    // Mock dispatch for demo - replace with actual Redux dispatch
-    console.log('Would create account with:', form);
+  
+    const formData = new FormData();
+    formData.append('name', form.name);
+    formData.append('username', form.username);
+    formData.append('email', form.email);
+    formData.append('password', form.password);
+    formData.append('bio', form.bio);
+    if (form.avatar) {
+      formData.append('avatar', form.avatar);
+    }
+  
+    const res = await dispatch(createUserAccount(formData));
+    console.log("Response : ", res);
+    if (res?.payload?.statusCode === 201) {
+      navigate("/");
+      setForm({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
+        bio: "",
+        avatar: null
+      });
+    }
   };
 
   const nextStep = () => {
@@ -338,13 +365,13 @@ const SignupPage: React.FC = () => {
                         )}
                       </div>
                       <label
-                        htmlFor="profilePicture"
+                        htmlFor="avatar"
                         className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
                       >
                         <Camera className="w-3 h-3 text-white" />
                       </label>
                       <input
-                        id="profilePicture"
+                        id="avatar"
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
@@ -406,7 +433,7 @@ const SignupPage: React.FC = () => {
                   type="button"
                   onClick={nextStep}
                   disabled={currentStep === 1 ? !canProceedStep1 : !canProceedStep2}
-                  className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex cursor-pointer items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -415,7 +442,7 @@ const SignupPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center px-6 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex cursor-pointer items-center px-6 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? (
                     <>

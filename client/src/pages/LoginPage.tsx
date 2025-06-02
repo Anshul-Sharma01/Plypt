@@ -9,7 +9,7 @@ const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading, error, isLoggedIn } = useSelector((state: RootState) => state.user);
-  const [email, setEmail] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -17,9 +17,15 @@ const LoginPage: React.FC = () => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(authenticateUser({ email, password }));
+    const res = await dispatch(authenticateUser({ inputValue, password }));
+    if(res?.payload?.statusCode === 200){
+      navigate("/");
+      setInputValue("");
+      setPassword("");
+    }
+
   };
 
   return (
@@ -44,7 +50,7 @@ const LoginPage: React.FC = () => {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
+                Email or Username
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -52,8 +58,8 @@ const LoginPage: React.FC = () => {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   autoComplete="email"

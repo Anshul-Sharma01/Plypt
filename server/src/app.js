@@ -28,6 +28,7 @@ import purchaseRouter from "./routes/purchase.routes.js";
 import reviewRouter from "./routes/review.routes.js";
 import likeRouter from "./routes/like.routes.js";
 import bookmarkRouter from "./routes/bookmark.routes.js";
+import { errorHandler } from "./utils/errorHandler.js";
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/craftor", craftorRouter);
@@ -38,6 +39,8 @@ app.use("/api/v1/purchase", purchaseRouter);
 app.use("/api/v1/review", reviewRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/bookmark", bookmarkRouter);
+
+app.use(errorHandler);
 
 export default app;
 
