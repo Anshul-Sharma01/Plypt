@@ -14,7 +14,7 @@ router.use(authMiddleware);
 router.route("/refresh-access-token").post(refreshAccessTokenController);
 router.route("/update-profile").patch(updateProfileController);
 router.route("/update-avatar").patch(upload.single("avatar"), updateAvatarController);
-router.route("/logout").post(logoutUserController);
+router.route("/logout").get(logoutUserController);
 
 
 export default router;

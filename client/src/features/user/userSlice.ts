@@ -55,7 +55,7 @@ export const authenticateUser = createAsyncThunk('auth/login', async (data: any,
 
 export const logoutUserAccount = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
-    const promise = axiosInstance.post('user/logout');
+    const promise = axiosInstance.get('user/logout');
     toastHandler(promise, 'Logging out...', 'Logged out!');
     const res = await promise;
     return res.data;
@@ -119,7 +119,10 @@ const userSlice = createSlice({
         state.isLoggedIn = false;
         state.userData = {};
         state.userRole = '';
-      });
+      })
+      .addCase(logoutUserAccount.rejected, (_, action) => {
+        toast.error(action.payload as string);
+      })
   },
 });
 

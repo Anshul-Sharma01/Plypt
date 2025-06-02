@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import Footer from './Footer';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import type { AppDispatch, RootState } from '../store';
+import { logoutUserAccount } from '../features/user/userSlice';
+import { useDispatch } from 'react-redux';
 
 const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -11,6 +13,8 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const { isLoggedIn, userData } = useSelector((state: RootState) => state?.user);
+
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,6 +67,10 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
+
+  const handleLogout = async() => {
+    await dispatch(logoutUserAccount());
+  }
 
   return (
     <div className="w-full relative dark:text-white">
@@ -224,11 +232,8 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                         <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
                         <button
-                          onClick={() => {
-                            closeUserDropdown();
-                            // Add logout functionality here
-                          }}
-                          className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
+                          onClick={handleLogout}
+                          className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 cursor-pointer dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -377,11 +382,8 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   </Link>
 
                   <button
-                    onClick={() => {
-                      closeMobileMenu();
-                      // Add logout functionality here
-                    }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200 group text-red-600 dark:text-red-400"
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200 group cursor-pointer text-red-600 dark:text-red-400"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
