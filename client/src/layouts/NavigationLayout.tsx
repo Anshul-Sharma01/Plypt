@@ -116,12 +116,16 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               ) : (
                 <>
                   {/* Additional Desktop Navigation for Logged-in Users */}
-                  <Link 
-                    to="/dashboard" 
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
-                  >
-                    Dashboard
-                  </Link>
+                  {
+                    userData.isCraftor && (
+                      <Link 
+                        to="/dashboard" 
+                        className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                      >
+                        Dashboard
+                      </Link>
+                    )
+                  }
                   <Link 
                     to="/favorites" 
                     className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
@@ -206,17 +210,21 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                           </svg>
                           <span>Settings</span>
                         </Link>
+                        {
+                          userData.isCraftor && (
+                            <Link
+                              to="/billing"
+                              onClick={closeUserDropdown}
+                              className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                            >
+                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                              <span>Billing & Plans</span>
+                            </Link>
 
-                        <Link
-                          to="/billing"
-                          onClick={closeUserDropdown}
-                          className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-                        >
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                          </svg>
-                          <span>Billing & Plans</span>
-                        </Link>
+                          )
+                        }
 
                         <Link
                           to="/help"
@@ -336,16 +344,20 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
               {isLoggedIn ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    onClick={closeMobileMenu}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 group"
-                  >
-                    <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                    </svg>
-                    <span className="font-medium">Dashboard</span>
-                  </Link>
+                  {
+                    userData.isCraftor && (
+                      <Link
+                        to="/dashboard"
+                        onClick={closeMobileMenu}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 group"
+                      >
+                        <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                        </svg>
+                        <span className="font-medium">Dashboard</span>
+                      </Link>
+                    )
+                  }
 
                   <Link
                     to="/profile"
