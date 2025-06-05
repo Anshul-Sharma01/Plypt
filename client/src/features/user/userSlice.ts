@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '../../helpers/axiosInstance';
 import toast from 'react-hot-toast';
+import { toastHandler } from '../../helpers/toastHandler';
 
 const updateLocalStorage = (user: any) => {
   localStorage.setItem('userData', JSON.stringify(user));
@@ -8,12 +9,7 @@ const updateLocalStorage = (user: any) => {
   localStorage.setItem('userRole', user?.role);
 };
 
-const toastHandler = (promise: Promise<any>, loadingMsg: string, successMsg: string) => {
-  return toast.promise(promise, {
-    loading: loadingMsg,
-    success: (data) => data?.message || successMsg,
-  });
-};
+
 
 interface UserState {
   isLoggedIn: boolean;
