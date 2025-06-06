@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Shield, User, Calendar, Mail } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import NavigationLayout from '../layouts/NavigationLayout';
+import EnableCraftorPrivilegesModal from '../components/craftor/EnableCraftorPrivilegesModal';
 
 interface UserData {
   name: string;
@@ -20,6 +21,17 @@ interface UserData {
 
 const Profile: React.FC = () => {
   const userData: UserData = useSelector((state: RootState) => state?.user?.userData);
+  
+   
+  const [ isModalOpen, setIsModalOpen ] = useState(false);
+
+  const handleEnableCraftorPrivileges = () => {
+    setIsModalOpen(true);
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  }
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -70,7 +82,7 @@ const Profile: React.FC = () => {
                 <p className="text-gray-700 dark:text-gray-300 mb-8">{userData.bio}</p>
                 <div className="flex flex-wrap gap-4">
                   {!userData.isCraftor ? (
-                    <button className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300">
+                    <button onClick={handleEnableCraftorPrivileges} className="flex items-center px-6 py-3 bg-gradient-to-r cursor-pointer from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300">
                       <User className="w-5 h-5 mr-2" />
                       Activate Craftor Privileges
                     </button>
@@ -106,6 +118,11 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+      <EnableCraftorPrivilegesModal 
+        isOpen = {isModalOpen}
+        onClose = {handleCloseModal}
+        onSubmit = {() => console.log("Submitted")}
+      />
     </NavigationLayout>
   );
 };

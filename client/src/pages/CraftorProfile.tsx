@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Shield, User, Calendar, Mail, CreditCard, Tag, List, DollarSign, Star } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
