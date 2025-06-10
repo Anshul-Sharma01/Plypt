@@ -54,7 +54,7 @@ const Profile: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center md:items-start">
               <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-gradient-to-r from-purple-600 to-pink-600 mb-6 md:mb-0 md:mr-8">
                 <img
-                  src={userData.avatar.secure_url}
+                  src={userData?.avatar?.secure_url}
                   alt="User Avatar"
                   className="w-full h-full object-cover"
                 />

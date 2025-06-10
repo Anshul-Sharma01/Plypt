@@ -14,6 +14,7 @@ passport.use(new GoogleStrategy({
 }, async (req, accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails[0]?.value;
+        console.log("Profile : ", profile);
         if (!email) {
             return done(null, false, { message: 'No email provided by Google' });
         }
@@ -26,7 +27,7 @@ passport.use(new GoogleStrategy({
                 // Link Google account to existing user
                 user.googleId = profile.id;
                 if (!user.avatar?.secure_url && profile.photos[0]?.value) {
-                    user.avatar = { secure_url: profile.photos[0].value };
+                    user.avatar = { secure_url: profile.photos[0]?.value };
                 }
                 await user.save({ validateBeforeSave: false });
             } else {
@@ -49,7 +50,7 @@ passport.use(new GoogleStrategy({
                     name: profile.displayName || username,
                     email,
                     avatar: {
-                        secure_url: profile.photos[0]?.value,
+                        secure_url: profile?.photos[0]?.value,
                     },
                     username,
                     bio: 'Google user',
