@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import Footer from './Footer';
 import { useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const { isLoggedIn, userData } = useSelector((state: RootState) => state?.user);
 
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,6 +71,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   const handleLogout = async() => {
     await dispatch(logoutUserAccount());
+    navigate("/");
   }
 
   return (
