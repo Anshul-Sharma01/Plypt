@@ -6,6 +6,7 @@ import SignupPage from './pages/SignupPage';
 import './App.css'
 import { Toaster } from 'react-hot-toast';
 import Profile from './pages/Profile';
+import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path='/profile' element={<Profile/>}></Route>
+        <Route path='/google-auth-success' element={<GoogleAuthSuccess/>}></Route>
       </Routes>
     </Router>
   );

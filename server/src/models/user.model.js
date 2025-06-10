@@ -34,12 +34,12 @@ const userSchema = new Schema({
     },
     password : {
         type : String,
-        required : [true, "Password is required"],
+        required : [false, "Password is required"],
         select : false
     },
     bio : {
         type : String,
-        required : [true, "Bio is required"]
+        required : [false, "Bio is required"]
     },
     role : {
         type : String,
@@ -59,7 +59,12 @@ const userSchema = new Schema({
     },
     forgotPasswordExpiry : {
         type : Date
-    }
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
 }, {
     timestamps : true
 })

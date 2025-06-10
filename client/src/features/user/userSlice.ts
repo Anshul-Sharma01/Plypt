@@ -9,7 +9,12 @@ const updateLocalStorage = (user: any) => {
   localStorage.setItem('userRole', user?.role);
 };
 
-
+const clearAuthData = (state: UserState) => {
+  localStorage.clear();
+  state.isLoggedIn = false;
+  state.userData = {};
+  state.userRole = '';
+};
 
 interface UserState {
   isLoggedIn: boolean;
@@ -60,6 +65,15 @@ export const logoutUserAccount = createAsyncThunk('auth/logout', async (_, { rej
   }
 });
 
+export const fetchCurrentUser = createAsyncThunk('user/fetchCurrent', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get('user/me');
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to fetch user');
+  }
+});
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -73,19 +87,19 @@ const userSlice = createSlice({
       .addCase(createUserAccount.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
         if (action.payload?.data) {
-          updateLocalStorage(action.payload.data);
+          const { user, accessToken, refreshToken } = action.payload.data;
+          updateLocalStorage(user);
+          if (accessToken) localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
           state.isLoggedIn = true;
-          state.userData = action.payload.data;
-          state.userRole = action.payload.data.role;
+          state.userData = user;
+          state.userRole = user.role;
         }
       })
       .addCase(createUserAccount.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        localStorage.clear();
-        state.isLoggedIn = false;
-        state.userData = {};
-        state.userRole = '';
+        clearAuthData(state);
         toast.error(action.payload as string)
       })
       .addCase(authenticateUser.pending, (state) => {
@@ -95,19 +109,19 @@ const userSlice = createSlice({
       .addCase(authenticateUser.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
         if (action.payload?.data) {
-          updateLocalStorage(action.payload.data);
+          const { user, accessToken, refreshToken } = action.payload.data;
+          updateLocalStorage(user);
+          if (accessToken) localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
           state.isLoggedIn = true;
-          state.userData = action.payload.data;
-          state.userRole = action.payload.data.role;
+          state.userData = user;
+          state.userRole = user.role;
         }
       })
       .addCase(authenticateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        localStorage.clear();
-        state.isLoggedIn = false;
-        state.userData = {};
-        state.userRole = '';
+        clearAuthData(state);
         toast.error(action.payload as string);
       })
       .addCase(logoutUserAccount.fulfilled, (state) => {
@@ -118,6 +132,22 @@ const userSlice = createSlice({
       })
       .addCase(logoutUserAccount.rejected, (_, action) => {
         toast.error(action.payload as string);
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action: PayloadAction<any>) => {
+        if (action.payload?.data) {
+          const user = action.payload.data;
+          updateLocalStorage(user);
+          state.isLoggedIn = true;
+          state.userData = user;
+          state.userRole = user.role;
+          state.loading = false;
+          state.error = null;
+        }
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        clearAuthData(state);
       })
   },
 });

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { authenticateUser } from '../features/user/userSlice';
+import { authenticateUser, fetchCurrentUser } from '../features/user/userSlice';
 import { type RootState, type AppDispatch } from '../store';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import Cookies from "js-cookie";
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, error, isLoggedIn } = useSelector((state: RootState) => state.user);
   const [inputValue, setInputValue] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +18,18 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
+
+  // Handle Google OAuth success redirect
+  useEffect(() => {
+    if (location.pathname === '/google-auth-success') {
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token');
+      if (token) {
+        Cookies.set("accessToken", token);
+        navigate('/');
+      }
+    }
+  }, [location, navigate]);
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +40,11 @@ const LoginPage: React.FC = () => {
       setPassword("");
     }
 
+  };
+
+  const handleGoogleLogin = () => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api/v1';
+    window.location.href = 'http://localhost:5000/api/v1/auth/google';
   };
 
   return (
@@ -152,6 +171,7 @@ const LoginPage: React.FC = () => {
             <button
               type="button"
               className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              onClick={handleGoogleLogin}
             >
               <div className="flex items-center justify-center">
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

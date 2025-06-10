@@ -77,7 +77,7 @@ const registerUserController = asyncHandler(async(req, res) => {
         .json(
             new ApiResponse(
                 201,
-                createdUser,
+                { user: createdUser, accessToken, refreshToken },
                 "User Registered Successfully"
             )
         )
@@ -116,7 +116,7 @@ const loginUserController = asyncHandler(async(req, res) => {
     .json(
         new ApiResponse(
             200,
-            loginUser,
+            { user: loginUser, accessToken, refreshToken },
             "User Logged In Successfully"
         )
     );
@@ -256,11 +256,27 @@ const logoutUserController = asyncHandler(async(req, res) => {
     )
 })
 
+const fetchUserProfile = asyncHandler(async(req, res) => {
+    const user = await User.findById(req?.user?._id);
+    if(!user){
+        throw new ApiError(404, "No user found");
+    }
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "User fetched Successfully"
+        )
+    )
+});
+
 export {
     registerUserController,
     loginUserController,
     refreshAccessTokenController,
     updateProfileController,
     updateAvatarController,
-    logoutUserController
+    logoutUserController,
+    fetchUserProfile
 }

@@ -5,7 +5,13 @@ import { User } from "../models/user.model.js";
 
 export const authMiddleware = asyncHandler(async(req, _, next) => {
     try{
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "").trim();
+        let token = req.cookies?.accessToken;
+        if (!token) {
+            const authHeader = req.header("Authorization");
+            if (authHeader && authHeader.startsWith("Bearer ")) {
+                token = authHeader.replace(/^Bearer\s+/i, "").trim();
+            }
+        }
 
         if(!token){
             throw new ApiError(401, "Unauthorized request");

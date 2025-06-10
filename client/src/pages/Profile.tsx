@@ -21,8 +21,6 @@ interface UserData {
 
 const Profile: React.FC = () => {
   const userData: UserData = useSelector((state: RootState) => state?.user?.userData);
-  
-   
   const [ isModalOpen, setIsModalOpen ] = useState(false);
 
   const handleEnableCraftorPrivileges = () => {

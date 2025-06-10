@@ -3,6 +3,8 @@ import cors from "cors";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import session from 'express-session';
+import passport from './config/googlePassport.js';
 
 config({ path: "./.env" });
 const app = express();
@@ -17,6 +19,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended : true }));
 app.use(morgan("dev"));
 
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'defaultsecret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true if using HTTPS
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Router Imports
 import userRouter from "./routes/user.routes.js";
@@ -29,6 +39,7 @@ import reviewRouter from "./routes/review.routes.js";
 import likeRouter from "./routes/like.routes.js";
 import bookmarkRouter from "./routes/bookmark.routes.js";
 import { errorHandler } from "./utils/errorHandler.js";
+import googleAuthRouter from './routes/googleAuth.routes.js';
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/craftor", craftorRouter);
@@ -39,6 +50,7 @@ app.use("/api/v1/purchase", purchaseRouter);
 app.use("/api/v1/review", reviewRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/bookmark", bookmarkRouter);
+app.use('/api/v1/auth', googleAuthRouter);
 
 app.use(errorHandler);
 

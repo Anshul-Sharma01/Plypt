@@ -12,7 +12,7 @@ let isRefreshing = false;
 
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
-    const accessToken = Cookies.get("accessToken");
+    const accessToken = localStorage.getItem("accessToken");
     if (accessToken && config.headers) {
       (config.headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
     }
@@ -45,7 +45,7 @@ axiosInstance.interceptors.response.use(
         // Wait for token refresh and retry original request
         return new Promise<AxiosResponse>((resolve) => {
           const interval = setInterval(() => {
-            const accessToken = Cookies.get("accessToken");
+            const accessToken = localStorage.getItem("accessToken");
             if (accessToken) {
               clearInterval(interval);
               if (originalRequest.headers) {
@@ -62,7 +62,7 @@ axiosInstance.interceptors.response.use(
 
       return new Promise<AxiosResponse>(async (resolve, reject) => {
         try {
-          const refreshToken = Cookies.get("refreshToken");
+          const refreshToken = localStorage.getItem("refreshToken");
           if (!refreshToken) throw new Error("No refresh token available");
 
           const response = await axiosInstance.post<RefreshTokenResponse>(
@@ -73,8 +73,8 @@ axiosInstance.interceptors.response.use(
           const newAccessToken = response.data.accessToken;
           const newRefreshToken = response.data.refreshToken;
 
-          Cookies.set("accessToken", newAccessToken);
-          Cookies.set("refreshToken", newRefreshToken);
+          localStorage.setItem("accessToken", newAccessToken);
+          localStorage.setItem("refreshToken", newRefreshToken);
 
           axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
           if (originalRequest.headers) {
@@ -91,8 +91,8 @@ axiosInstance.interceptors.response.use(
     } else if (axiosError.response?.status === 401) {
       window.alert("Please Log In again..");
       localStorage.clear();
-      Cookies.remove("accessToken");
-      Cookies.remove("refreshToken");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       console.log("Redirected..");
       window.location.href = import.meta.env.VITE_LOGIN_URL as string;
     }
