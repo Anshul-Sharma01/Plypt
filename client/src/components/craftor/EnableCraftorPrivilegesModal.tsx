@@ -24,7 +24,7 @@ const EnableCraftorPrivilegesModal: React.FC<EnableCraftorPrivilegesModalProps> 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Check if at least one field is filled
+    
     if (paymentDetails.upiId || paymentDetails.razorpayId || paymentDetails.bankAccount) {
       onSubmit(paymentDetails);
       onClose();

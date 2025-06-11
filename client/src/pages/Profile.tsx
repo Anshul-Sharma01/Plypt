@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Shield, User, Calendar, Mail } from 'lucide-react';
+import { Shield, User, Calendar, Mail, Edit, Camera } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import NavigationLayout from '../layouts/NavigationLayout';
 import EnableCraftorPrivilegesModal from '../components/craftor/EnableCraftorPrivilegesModal';
+import UpdateProfileModal from '../components/profile/UpdateProfileModal';
+import UploadPictureModal from '../components/profile/UploadPictureModal';
 
 interface UserData {
   name: string;
@@ -21,15 +23,42 @@ interface UserData {
 
 const Profile: React.FC = () => {
   const userData: UserData = useSelector((state: RootState) => state?.user?.userData);
-  const [ isModalOpen, setIsModalOpen ] = useState(false);
+  const [isCraftorModalOpen, setIsCraftorModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const handleEnableCraftorPrivileges = () => {
-    setIsModalOpen(true);
-  }
+    setIsCraftorModalOpen(true);
+  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  }
+  const handleCloseCraftorModal = () => {
+    setIsCraftorModalOpen(false);
+  };
+
+  const handleOpenUpdateModal = () => {
+    setIsUpdateModalOpen(true);
+  };
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+  };
+
+  const handleUpdateProfile = (updatedData: { name: string; username: string; bio: string }) => {
+    console.log('Updated Data:', updatedData);
+  };
+
+  const handleOpenUploadModal = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setIsUploadModalOpen(false);
+  };
+
+  const handleUploadPicture = (file: File) => {
+    console.log('Uploaded File:', file);
+    // Add your logic to handle the uploaded file here
+  };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -52,17 +81,35 @@ const Profile: React.FC = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden p-8">
             <div className="flex flex-col md:flex-row items-center md:items-start">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-gradient-to-r from-purple-600 to-pink-600 mb-6 md:mb-0 md:mr-8">
-                <img
-                  src={userData?.avatar?.secure_url}
-                  alt="User Avatar"
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative w-40 h-40 mb-6 md:mb-0 md:mr-8">
+                <div className="w-full h-full rounded-full overflow-hidden border-4 border-gradient-to-r from-purple-600 to-pink-600">
+                  <img
+                    src={userData?.avatar?.secure_url}
+                    alt="User Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  onClick={handleOpenUploadModal}
+                  className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 border-2 border-gray-300 dark:border-gray-600"
+                  style={{ transform: 'translate(10%, 10%)' }}
+                >
+                  <Camera className="w-5 h-5 text-gray-700 dark:text-white" />
+                </button>
               </div>
+
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                   <div>
-                    <h1 className="text-3xl font-bold">{userData.name}</h1>
+                    <div className="flex items-center">
+                      <h1 className="text-3xl font-bold">{userData.name}</h1>
+                      <button
+                        onClick={handleOpenUpdateModal}
+                        className="ml-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    </div>
                     <p className="text-gray-600 dark:text-gray-300">@{userData.username}</p>
                   </div>
                   <div className="mt-4 sm:mt-0">
@@ -80,7 +127,10 @@ const Profile: React.FC = () => {
                 <p className="text-gray-700 dark:text-gray-300 mb-8">{userData.bio}</p>
                 <div className="flex flex-wrap gap-4">
                   {!userData.isCraftor ? (
-                    <button onClick={handleEnableCraftorPrivileges} className="flex items-center px-6 py-3 bg-gradient-to-r cursor-pointer from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300">
+                    <button
+                      onClick={handleEnableCraftorPrivileges}
+                      className="flex items-center px-6 py-3 bg-gradient-to-r cursor-pointer from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300"
+                    >
                       <User className="w-5 h-5 mr-2" />
                       Activate Craftor Privileges
                     </button>
@@ -116,10 +166,21 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
-      <EnableCraftorPrivilegesModal 
-        isOpen = {isModalOpen}
-        onClose = {handleCloseModal}
-        onSubmit = {() => console.log("Submitted")}
+      <EnableCraftorPrivilegesModal
+        isOpen={isCraftorModalOpen}
+        onClose={handleCloseCraftorModal}
+        onSubmit={() => console.log('Submitted')}
+      />
+      <UpdateProfileModal
+        isOpen={isUpdateModalOpen}
+        onClose={handleCloseUpdateModal}
+        onSubmit={handleUpdateProfile}
+        userData={userData}
+      />
+      <UploadPictureModal
+        isOpen={isUploadModalOpen}
+        onClose={handleCloseUploadModal}
+        onSubmit={handleUploadPicture}
       />
     </NavigationLayout>
   );

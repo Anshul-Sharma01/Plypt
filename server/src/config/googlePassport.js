@@ -14,7 +14,7 @@ passport.use(new GoogleStrategy({
 }, async (req, accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails[0]?.value;
-        console.log("Profile : ", profile);
+        // console.log("Profile : ", profile);
         if (!email) {
             return done(null, false, { message: 'No email provided by Google' });
         }
