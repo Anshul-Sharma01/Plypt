@@ -1,4 +1,4 @@
-import axios, { type InternalAxiosRequestConfig, type AxiosResponse, type AxiosError } from "axios";
+import axios, { type InternalAxiosRequestConfig, type AxiosResponse, AxiosError } from "axios";
 import Cookies from "js-cookie";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
@@ -12,44 +12,33 @@ let isRefreshing = false;
 
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = Cookies.get("accessToken");
     if (accessToken && config.headers) {
-      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  (error: any) => Promise.reject(error)
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
 );
 
-interface RefreshTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: unknown) => {
-    if (!axios.isAxiosError(error)) {
-      return Promise.reject(error);
-    }
+  (response: AxiosResponse): AxiosResponse => {
+    return response;
+  },
+  async (error: AxiosError): Promise<any> => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    const axiosError = error as AxiosError;
-    const originalRequest = axiosError.config as InternalAxiosRequestConfig & { _retry?: boolean } | undefined;
-
-    if (!originalRequest) {
-      return Promise.reject(error);
-    }
-
-    if (axiosError.response?.status === 403 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Wait for token refresh and retry original request
-        return new Promise<AxiosResponse>((resolve) => {
+        return new Promise((resolve) => {
           const interval = setInterval(() => {
-            const accessToken = localStorage.getItem("accessToken");
+            const accessToken = Cookies.get("accessToken");
             if (accessToken) {
               clearInterval(interval);
               if (originalRequest.headers) {
-                (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
               }
               resolve(axiosInstance(originalRequest));
             }
@@ -60,25 +49,23 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      return new Promise<AxiosResponse>(async (resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
         try {
-          const refreshToken = localStorage.getItem("refreshToken");
-          if (!refreshToken) throw new Error("No refresh token available");
-
-          const response = await axiosInstance.post<RefreshTokenResponse>(
-            "/user/refresh-token",
-            { refreshToken }
-          );
+          const refreshToken = Cookies.get("refreshToken");
+          const response = await axios.post(`${BASE_URL}/user/refresh-access-token`, { refreshToken }, {
+            withCredentials: true, 
+          });
+          
 
           const newAccessToken = response.data.accessToken;
           const newRefreshToken = response.data.refreshToken;
 
-          localStorage.setItem("accessToken", newAccessToken);
-          localStorage.setItem("refreshToken", newRefreshToken);
+          Cookies.set("accessToken", newAccessToken);
+          Cookies.set("refreshToken", newRefreshToken);
 
           axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
           if (originalRequest.headers) {
-            (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${newAccessToken}`;
+            originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           }
 
           resolve(axiosInstance(originalRequest));
@@ -88,11 +75,11 @@ axiosInstance.interceptors.response.use(
           isRefreshing = false;
         }
       });
-    } else if (axiosError.response?.status === 401) {
+    } else if (error.response?.status === 401) {
       window.alert("Please Log In again..");
       localStorage.clear();
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
       console.log("Redirected..");
       window.location.href = import.meta.env.VITE_LOGIN_URL as string;
     }

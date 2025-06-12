@@ -31,7 +31,6 @@ passport.use(new GoogleStrategy({
                 }
                 await user.save({ validateBeforeSave: false });
             } else {
-                // Create a new user if not found
                 const username = email.split('@')[0];
                 const existingUser = await User.findOne({ username });
                 

@@ -4,6 +4,14 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
+
+const cookieOptions = {
+  httpOnly : true,
+  secure : false,
+  maxAge : 7 * 24 * 60 * 60 * 1000,
+}
+
+
 // Start Google OAuth
 router.get('/google',
   passport.authenticate('google', { 
@@ -49,7 +57,10 @@ router.get('/google/callback',
 
       // Redirect to frontend with both tokens
       const redirectUrl = `${process.env.FRONTEND_URL}/google-auth-success?token=${accessToken}&refreshToken=${refreshToken}`;
-      res.redirect(redirectUrl);
+      res
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .redirect(redirectUrl);
     } catch (error) {
       console.error('Google auth error:', error);
       res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);

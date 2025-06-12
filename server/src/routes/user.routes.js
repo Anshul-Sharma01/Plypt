@@ -8,11 +8,11 @@ const router = Router();
 
 router.route("/login").post(loginUserController);
 router.route("/register").post( upload.single("avatar"), registerUserController);
+router.route("/refresh-access-token").post(refreshAccessTokenController);
 
 router.use(authMiddleware);
 
 router.route("/me").get(fetchUserProfile);
-router.route("/refresh-access-token").post(refreshAccessTokenController);
 router.route("/update-profile").patch( upload.none(), updateProfileController);
 router.route("/update-avatar").patch(upload.single("avatar"), updateAvatarController);
 router.route("/logout").get(logoutUserController);
