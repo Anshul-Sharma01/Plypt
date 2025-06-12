@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
 
 const updateLocalStorage = (craftor : any) => {
-
+    localStorage.setItem('craftorData', JSON.stringify(craftor));
 }
 
 
@@ -16,13 +16,14 @@ interface CraftorState {
 }
 
 const initialState : CraftorState = {
-    craftorData : localStorage.getItem("isLoggedIn") === "true",
+    craftorData : JSON.parse(localStorage.getItem("craftorData") || '{}'),
     loading : false,
     error : null
 }
 
 export const activateCraftorAccount = createAsyncThunk("auth/craftor/activate", async(data : any, { rejectWithValue } ) => {
     try{
+        console.log(data);
         const promise = axiosInstance.post("craftor/activate", data);
         toastHandler(promise, "Activating Craftor Account", "Craftor Account Activated Successfully !");
         const res = await promise;

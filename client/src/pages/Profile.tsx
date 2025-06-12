@@ -8,6 +8,9 @@ import UpdateProfileModal from '../components/profile/UpdateProfileModal';
 import UploadPictureModal from '../components/profile/UploadPictureModal';
 import { useDispatch } from 'react-redux';
 import { updatePictureThunk, updateProfileThunk } from '../features/user/userSlice';
+import { useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/craftor/LoadingScreen';
+import { activateCraftorAccount } from '../features/craftor/craftorSlice';
 
 interface UserData {
   name: string;
@@ -23,12 +26,20 @@ interface UserData {
   email: string;
 }
 
+interface PaymentDetails {
+  upiId: string | null;
+  razorpayId: string | null;
+  bankAccount: string | null;
+}
+
 const Profile: React.FC = () => {
   const userData: UserData = useSelector((state: RootState) => state?.user?.userData);
   const [isCraftorModalOpen, setIsCraftorModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const dispatch = useDispatch < AppDispatch >();
+  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   const handleEnableCraftorPrivileges = () => {
     setIsCraftorModalOpen(true);
@@ -48,13 +59,13 @@ const Profile: React.FC = () => {
 
   const handleUpdateProfile = async (updatedData: { name: string | null; username: string | null; bio: string | null }) => {
     const formData = new FormData();
-    if(updatedData.name && updatedData.name !== userData.name){
+    if (updatedData.name && updatedData.name !== userData.name) {
       formData.append("name", updatedData.name);
     }
-    if(updatedData.username && updatedData.username !== userData.username){
+    if (updatedData.username && updatedData.username !== userData.username) {
       formData.append("username", updatedData.username);
     }
-    if(updatedData.bio && updatedData.bio !== userData.bio){
+    if (updatedData.bio && updatedData.bio !== userData.bio) {
       formData.append("bio", updatedData.bio);
     }
 
@@ -70,11 +81,42 @@ const Profile: React.FC = () => {
     setIsUploadModalOpen(false);
   };
 
-  const handleUploadPicture = async(file: File) => {
+  const handleUploadPicture = async (file: File) => {
     const formData = new FormData();
     formData.append("avatar", file);
     const res = await dispatch(updatePictureThunk(formData));
-    // console.log("Res : ", res);
+    console.log("Res : ", res);
+  };
+
+  const handleCraftorActivation = async (paymentDetails: PaymentDetails): Promise<number> => {
+    setIsLoading(true);
+    let userPaymentDetails : PaymentDetails = {
+      bankAccount : "",
+      upiId : "",
+      razorpayId : ""
+    }
+    if(paymentDetails.bankAccount) userPaymentDetails.bankAccount = paymentDetails.bankAccount;
+    if(paymentDetails.razorpayId) userPaymentDetails.razorpayId = paymentDetails.razorpayId;
+    if(paymentDetails.upiId) userPaymentDetails.upiId = paymentDetails.upiId
+    try {
+      console.log("Payment detaisl : ", userPaymentDetails);
+
+      const response = await dispatch(activateCraftorAccount(userPaymentDetails));
+      console.log("Response : ", response);
+
+      if (response.payload.statusCode === 201) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        navigate(`/craftor-profile?`);
+      } else {
+        console.error("Failed to enable Craftor privileges.");
+      }
+      return response.payload.statusCode;
+    } catch (error) {
+      console.error("An error occurred while enabling Craftor privileges.", error);
+      return 500;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -186,7 +228,7 @@ const Profile: React.FC = () => {
       <EnableCraftorPrivilegesModal
         isOpen={isCraftorModalOpen}
         onClose={handleCloseCraftorModal}
-        onSubmit={() => console.log('Submitted')}
+        onSubmit={handleCraftorActivation}
       />
       <UpdateProfileModal
         isOpen={isUpdateModalOpen}
@@ -199,6 +241,7 @@ const Profile: React.FC = () => {
         onClose={handleCloseUploadModal}
         onSubmit={handleUploadPicture}
       />
+      {isLoading && <LoadingScreen />}
     </NavigationLayout>
   );
 };

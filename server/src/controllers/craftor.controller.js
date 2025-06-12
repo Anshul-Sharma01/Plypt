@@ -11,34 +11,40 @@ import { handleAuctionEnd } from "../socket/bidSocket.js";
 
 const activateCraftorController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
-    const { userPaymentDetails } = req.body;
+    // console.log("Body : ", req.body);
+    const { bankAccount, razorpayId, upiId } = req.body;
 
     const user = await User.findById(userId);
     if(!user){
         throw new ApiError(404, "User not found");
     }
     const username = user?.username;
+    // console.log("User-Payment-Details : ", userPaymentDetails);
 
     const generatedSlug = slugify(username, { lower : true, strict : true });
 
-    if(!userPaymentDetails.razorpayId && !userPaymentDetails.bankAccount && !userPaymentDetails.upiId){
+    if(!razorpayId && !bankAccount && !upiId){
         throw new ApiError(400, "Atleast provide one payment option");
     }
 
     let paymentDetails = {};
-    if(userPaymentDetails?.razorpayId) paymentDetails.razorpayId = userPaymentDetails?.razorpayId;
-    if(userPaymentDetails?.bankAccount) paymentDetails.bankAccount = userPaymentDetails?.bankAccount;
-    if(userPaymentDetails?.upiId) paymentDetails.upiId = userPaymentDetails?.upiId;
+    if(razorpayId) paymentDetails.razorpayId = razorpayId;
+    if(bankAccount) paymentDetails.bankAccount = bankAccount;
+    if(upiId) paymentDetails.upiId = upiId;
 
-    const craftor = await Craftor.create({
+    let craftor = await Craftor.create({
         user : userId,
         slug : generatedSlug,
         paymentDetails
     });
 
+
     if(!craftor){
         throw new ApiError(400, "Please try again after sometime");
     }
+
+    craftor = await Craftor.findById(craftor?._id).populate("user");
+    
 
     return res.status(201)
     .json(
