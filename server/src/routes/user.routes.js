@@ -13,7 +13,7 @@ router.use(authMiddleware);
 
 router.route("/me").get(fetchUserProfile);
 router.route("/refresh-access-token").post(refreshAccessTokenController);
-router.route("/update-profile").patch(updateProfileController);
+router.route("/update-profile").patch( upload.none(), updateProfileController);
 router.route("/update-avatar").patch(upload.single("avatar"), updateAvatarController);
 router.route("/logout").get(logoutUserController);
 

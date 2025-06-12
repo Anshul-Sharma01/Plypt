@@ -11,7 +11,7 @@ const errorHandler = (err, _, res, next) => {
             data: null,
         });
     }
-
+    console.log("Error : ", err);
     // For unhandled/unknown errors
     return res.status(500).json({
         success: false,

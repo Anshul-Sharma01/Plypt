@@ -159,7 +159,9 @@ const refreshAccessTokenController = asyncHandler(async(req, res) => {
 })
 
 const updateProfileController = asyncHandler(async(req, res) => {
+    console.log("body : ", req.body);
     const { name, bio, username } = req.body;
+    console.log("name-bio-username :", name, "-", bio, "-", "username");
     const userId = req.user?._id;
     
     if(!name && !bio && !username){

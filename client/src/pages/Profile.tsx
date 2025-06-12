@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Shield, User, Calendar, Mail, Edit, Camera } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import type { AppDispatch, RootState } from '../store';
 import NavigationLayout from '../layouts/NavigationLayout';
 import EnableCraftorPrivilegesModal from '../components/craftor/EnableCraftorPrivilegesModal';
 import UpdateProfileModal from '../components/profile/UpdateProfileModal';
 import UploadPictureModal from '../components/profile/UploadPictureModal';
+import { useDispatch } from 'react-redux';
+import { updatePictureThunk, updateProfileThunk } from '../features/user/userSlice';
 
 interface UserData {
   name: string;
@@ -26,6 +28,7 @@ const Profile: React.FC = () => {
   const [isCraftorModalOpen, setIsCraftorModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const dispatch = useDispatch < AppDispatch >();
 
   const handleEnableCraftorPrivileges = () => {
     setIsCraftorModalOpen(true);
@@ -43,8 +46,20 @@ const Profile: React.FC = () => {
     setIsUpdateModalOpen(false);
   };
 
-  const handleUpdateProfile = (updatedData: { name: string; username: string; bio: string }) => {
-    console.log('Updated Data:', updatedData);
+  const handleUpdateProfile = async (updatedData: { name: string | null; username: string | null; bio: string | null }) => {
+    const formData = new FormData();
+    if(updatedData.name && updatedData.name !== userData.name){
+      formData.append("name", updatedData.name);
+    }
+    if(updatedData.username && updatedData.username !== userData.username){
+      formData.append("username", updatedData.username);
+    }
+    if(updatedData.bio && updatedData.bio !== userData.bio){
+      formData.append("bio", updatedData.bio);
+    }
+
+    const res = await dispatch(updateProfileThunk(formData));
+    console.log("Res : ", res);
   };
 
   const handleOpenUploadModal = () => {
@@ -55,9 +70,11 @@ const Profile: React.FC = () => {
     setIsUploadModalOpen(false);
   };
 
-  const handleUploadPicture = (file: File) => {
-    console.log('Uploaded File:', file);
-    // Add your logic to handle the uploaded file here
+  const handleUploadPicture = async(file: File) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const res = await dispatch(updatePictureThunk(formData));
+    // console.log("Res : ", res);
   };
 
   const formatDate = (dateString: string) => {

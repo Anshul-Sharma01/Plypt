@@ -74,6 +74,28 @@ export const fetchCurrentUser = createAsyncThunk('user/fetchCurrent', async (_, 
   }
 });
 
+export const updateProfileThunk = createAsyncThunk("user/update-profile", async(data : FormData, { rejectWithValue }) => {
+  try{
+    const promise = axiosInstance.patch("user/update-profile", data);
+    toastHandler(promise, "Updating Profile...", "Successfully updated the profile");
+    const res = await promise;
+    return res.data;
+  }catch(err : any){
+    return rejectWithValue(err.response?.data?.message || "Failed to update the profile");
+  }
+})
+
+export const updatePictureThunk = createAsyncThunk("user/update-picture", async( data : FormData, { rejectWithValue } ) => {
+  try{
+    const promise = axiosInstance.patch("user/update-avatar", data);
+    toastHandler(promise, "Updating profile picture", "Successfully updated the profile picture");
+    const res = await promise;
+    return res.data;
+  }catch(err : any){
+    return rejectWithValue(err.response?.data?.message || "Failed to update the profile picture");
+  }
+})
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -148,6 +170,23 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         clearAuthData(state);
+      })
+      .addCase(updateProfileThunk.fulfilled, (state, action) => {
+        if(action.payload.statusCode === 200){
+          updateLocalStorage(action.payload.data);
+          state.userData = action.payload.data;
+        }
+      })
+      .addCase(updateProfileThunk.rejected, (state, action) => {
+        toast.error(action.payload as string);
+      })
+      .addCase(updatePictureThunk.fulfilled, (state, action) => {
+        if(action.payload.statusCode === 200){
+          state.userData = action.payload.data;
+        }
+      })
+      .addCase(updatePictureThunk.rejected, (state, action) => {
+        toast.error(action.payload as string);
       })
   },
 });
