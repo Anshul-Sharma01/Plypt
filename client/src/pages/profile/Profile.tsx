@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shield, User, Calendar, Mail, Edit, Camera } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
@@ -11,6 +11,8 @@ import { updatePictureThunk, updateProfileThunk } from '../../features/user/user
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../../components/craftor/LoadingScreen';
 import { activateCraftorAccount } from '../../features/craftor/craftorSlice';
+import type { CraftorData } from './CraftorProfile';
+import toast from 'react-hot-toast';
 
 interface UserData {
   name: string;
@@ -37,6 +39,7 @@ const Profile: React.FC = () => {
   const [isCraftorModalOpen, setIsCraftorModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [craftorData, setCraftorData] = useState<CraftorData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -56,6 +59,18 @@ const Profile: React.FC = () => {
   const handleCloseUpdateModal = () => {
     setIsUpdateModalOpen(false);
   };
+
+
+  const craftorDataFromRedux = useSelector((state: RootState) => state?.craftor?.craftorData);
+
+  useEffect(() => {
+    if (userData?.isCraftor) {
+      setCraftorData(craftorDataFromRedux);
+    } else {
+      setCraftorData(null);
+    }
+  }, [userData, craftorDataFromRedux]);
+  
 
   const handleUpdateProfile = async (updatedData: { name: string | null; username: string | null; bio: string | null }) => {
     const formData = new FormData();
@@ -105,8 +120,9 @@ const Profile: React.FC = () => {
       console.log("Response : ", response);
 
       if (response.payload.statusCode === 201) {
+        const craftorData = useSelector((state : RootState) => state?.craftor?.craftorData);
         await new Promise(resolve => setTimeout(resolve, 3000));
-        navigate(`/craftor-profile?`);
+        navigate(`/craftor-profile/${craftorData?.slug}`);
       } else {
         console.error("Failed to enable Craftor privileges.");
       }
@@ -194,7 +210,13 @@ const Profile: React.FC = () => {
                       Activate Craftor Privileges
                     </button>
                   ) : (
-                    <button onClick={() => navigate("/craftor-profile")} className="cursor-pointer flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+                    <button onClick={() => {
+                      if (craftorData?.slug) {
+                        navigate(`/craftor-profile/${craftorData.slug}`);
+                      } else {
+                        toast.error("Craftor data not loaded yet");
+                      }
+                    }} className="cursor-pointer flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
                       <User className="w-5 h-5 mr-2" />
                       Visit Craftor Account
                     </button>

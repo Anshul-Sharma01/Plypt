@@ -8,8 +8,6 @@ const updateLocalStorage = (craftor : any) => {
     localStorage.setItem('craftorData', JSON.stringify(craftor));
 }
 
-
-
 interface CraftorState {
     craftorData : any;
     loading : boolean;
@@ -92,13 +90,6 @@ const craftorSlice = createSlice({
             .addCase(getCraftorProfile.pending, (state, _) => {
                 state.loading = true;
                 state.error = null;
-            })
-            .addCase(getCraftorProfile.fulfilled, (state, action : PayloadAction < any >) => {
-                state.loading = false;
-                if(action?.payload?.data){
-                    updateLocalStorage(action.payload.data);
-                    state.craftorData = action.payload.data;
-                }
             })
             .addCase(getCraftorProfile.rejected, (state, action) => {
                 state.loading = false;

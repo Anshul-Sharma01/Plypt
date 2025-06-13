@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shield, User, Calendar, Mail, CreditCard, Tag, List, DollarSign, Star, Eye, Zap, Crown, Moon } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
+import { useDispatch } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getCraftorProfile } from '../../features/craftor/craftorSlice';
+import type { AppDispatch } from '../../store';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 
 export interface Picture {
   public_id: string;
@@ -41,8 +47,17 @@ export interface CraftorData {
 }
 
 const CraftorProfile: React.FC = () => {
-  // Mock data for demonstration
-  const craftorData: CraftorData = {
+
+  const dispatch = useDispatch < AppDispatch >();
+  const selfSlug = useSelector((state : RootState) => state?.craftor?.craftorData?.slug);
+  const navigate = useNavigate();
+  const error = useSelector((state : RootState) => state?.craftor?.error);
+  if(error){
+    navigate(-1);
+  }
+
+  const {slug} = useParams();
+  const [ craftorData, setCraftorData ] = useState({
     user: {
       name: "Shadow Artisan",
       username: "shadowcraft",
@@ -98,7 +113,18 @@ const CraftorProfile: React.FC = () => {
       upiId: "shadow@paytm"
     },
     tier: "Elite"
-  };
+  });
+
+  useEffect(() => {
+    if(slug !== selfSlug){
+      async function fetchCraftorProfile(){
+        const res = await dispatch(getCraftorProfile(slug));
+        console.log("Res from slug-fetch-craftor : ", res);
+        setCraftorData(res?.payload?.data)
+      }
+      fetchCraftorProfile();
+    }
+  }, [slug, selfSlug, dispatch])
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -269,6 +295,7 @@ const CraftorProfile: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {craftorData?.prompts?.length === 0 && <p className=''>No creations yet!!</p>}
                 {craftorData?.prompts?.map((prompt) => (
                   <div key={prompt._id} className="group relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 rounded-xl blur group-hover:blur-md transition-all duration-300"></div>

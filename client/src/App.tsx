@@ -21,7 +21,7 @@ const App: React.FC = () => {
         <Route path='/profile' element={<Profile/>}></Route>
         <Route path='/google-auth-success' element={<GoogleAuthSuccess/>}></Route>
 
-        <Route path='/craftor-profile' element={<CraftorProfile/>}></Route>
+        <Route path='/craftor-profile/:slug' element={<CraftorProfile/>}></Route>
         <Route path='/craftor/billing' element={<Billing/>}></Route>
       </Routes>
     </Router>
