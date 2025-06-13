@@ -215,7 +215,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                         {
                           userData.isCraftor && (
                             <Link
-                              to="/billing"
+                              to="/craftor/billing"
                               onClick={closeUserDropdown}
                               className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
                             >

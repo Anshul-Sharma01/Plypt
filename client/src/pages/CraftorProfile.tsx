@@ -2,12 +2,12 @@ import React from 'react';
 import { Shield, User, Calendar, Mail, CreditCard, Tag, List, DollarSign, Star, Eye, Zap, Crown, Moon } from 'lucide-react';
 import NavigationLayout from '../layouts/NavigationLayout';
 
-interface Picture {
+export interface Picture {
   public_id: string;
   secure_url: string;
 }
 
-interface Prompt {
+export interface Prompt {
   _id: string;
   title: string;
   description: string;
@@ -16,7 +16,7 @@ interface Prompt {
   rating: number;
 }
 
-interface CraftorData {
+export interface CraftorData {
   user: {
     name: string;
     username: string;
@@ -298,48 +298,7 @@ const CraftorProfile: React.FC = () => {
           </MysticalBorder>
 
           {/* Payment Vault */}
-          <MysticalBorder>
-            <div className="p-8">
-              <div className="flex items-center gap-3 mb-8">
-                <CreditCard className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                  Payment Vault
-                </h2>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg">
-                      <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="font-semibold text-gray-700 dark:text-gray-200">Razorpay Portal</h3>
-                  </div>
-                  <p className="text-gray-900 dark:text-white font-mono">{craftorData?.paymentDetails?.razorpayId}</p>
-                </div>
 
-                <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-green-500/10 dark:bg-green-500/20 rounded-lg">
-                      <Tag className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 className="font-semibold text-gray-700 dark:text-gray-200">UPI Gateway</h3>
-                  </div>
-                  <p className="text-gray-900 dark:text-white font-mono">{craftorData?.paymentDetails?.upiId}</p>
-                </div>
-
-                <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
-                      <List className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <h3 className="font-semibold text-gray-700 dark:text-gray-200">Bank Nexus</h3>
-                  </div>
-                  <p className="text-gray-900 dark:text-white font-mono">{craftorData?.paymentDetails?.bankAccount}</p>
-                </div>
-              </div>
-            </div>
-          </MysticalBorder>
         </div>
 
         <style jsx>{`

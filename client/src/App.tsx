@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import Profile from './pages/Profile';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 import CraftorProfile from './pages/CraftorProfile';
+import Billing from './components/craftor/Billing';
 
 const App: React.FC = () => {
   return (
@@ -21,6 +22,7 @@ const App: React.FC = () => {
         <Route path='/google-auth-success' element={<GoogleAuthSuccess/>}></Route>
 
         <Route path='/craftor-profile' element={<CraftorProfile/>}></Route>
+        <Route path='/craftor/billing' element={<Billing/>}></Route>
       </Routes>
     </Router>
   );
