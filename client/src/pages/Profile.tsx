@@ -99,7 +99,7 @@ const Profile: React.FC = () => {
     if(paymentDetails.razorpayId) userPaymentDetails.razorpayId = paymentDetails.razorpayId;
     if(paymentDetails.upiId) userPaymentDetails.upiId = paymentDetails.upiId
     try {
-      console.log("Payment detaisl : ", userPaymentDetails);
+      // console.log("Payment detaisl : ", userPaymentDetails);
 
       const response = await dispatch(activateCraftorAccount(userPaymentDetails));
       console.log("Response : ", response);
@@ -194,7 +194,7 @@ const Profile: React.FC = () => {
                       Activate Craftor Privileges
                     </button>
                   ) : (
-                    <button className="flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+                    <button onClick={() => navigate("/craftor-profile")} className="cursor-pointer flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
                       <User className="w-5 h-5 mr-2" />
                       Visit Craftor Account
                     </button>

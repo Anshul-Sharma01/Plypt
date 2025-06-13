@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { usernameValidation, emailValidation, passwordValidation } from "../utils/inputValidation.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import { Craftor } from "../models/craftor.model.js";
 
 
 const cookieOptions = {
@@ -107,6 +108,21 @@ const loginUserController = asyncHandler(async(req, res) => {
     const loginUser = await User.findById(userExists._id);
     if(!loginUser){
         throw new ApiError(500, "Something went wrong while logging in");
+    }
+
+    if(loginUser.isCraftor){
+        const craftor = await Craftor.findOne({ user : loginUser._id }).populate("user");
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                { user : loginUser, craftor },
+                "User Logged In Successfully"
+            )
+        )
     }
 
     return res
@@ -267,11 +283,25 @@ const fetchUserProfile = asyncHandler(async(req, res) => {
     if(!user){
         throw new ApiError(404, "No user found");
     }
+
+    if(user.isCraftor){
+        const craftor = await Craftor.findOne({ user : user._id }).populate("user");
+        return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { user, craftor },
+                "User Fetched Successfully"
+            )
+        )
+        
+    }
+
     return res.status(200)
     .json(
         new ApiResponse(
             200,
-            user,
+            {user},
             "User fetched Successfully"
         )
     )

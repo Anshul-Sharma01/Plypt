@@ -131,10 +131,8 @@ const userSlice = createSlice({
       .addCase(authenticateUser.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
         if (action.payload?.data) {
-          const { user, accessToken, refreshToken } = action.payload.data;
+          const { user } = action.payload.data;
           updateLocalStorage(user);
-          if (accessToken) localStorage.setItem('accessToken', accessToken);
-          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
           state.isLoggedIn = true;
           state.userData = user;
           state.userRole = user.role;
@@ -157,7 +155,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action: PayloadAction<any>) => {
         if (action.payload?.data) {
-          const user = action.payload.data;
+          const {user} = action.payload.data;
           updateLocalStorage(user);
           state.isLoggedIn = true;
           state.userData = user;

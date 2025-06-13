@@ -34,6 +34,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     const res = await dispatch(authenticateUser({ inputValue, password }));
+    console.log("Authenticate Response : ", res);
     if(res?.payload?.statusCode === 200){
       navigate("/");
       setInputValue("");

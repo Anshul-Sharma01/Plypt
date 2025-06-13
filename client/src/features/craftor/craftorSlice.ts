@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/tool
 import axiosInstance from "../../helpers/axiosInstance";
 import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
+import { authenticateUser, fetchCurrentUser } from "../user/userSlice";
 
 const updateLocalStorage = (craftor : any) => {
     localStorage.setItem('craftorData', JSON.stringify(craftor));
@@ -76,7 +77,19 @@ const craftorSlice = createSlice({
                 state.craftorData = {};
                 toast.error(action.payload as string);
             })
-            .addCase(getCraftorProfile.pending, (state, action) => {
+            .addCase(authenticateUser.fulfilled, (state, action) => {
+                if(action.payload?.data?.user?.isCraftor){
+                    updateLocalStorage(action?.payload?.data?.craftor);
+                    state.craftorData = action?.payload?.data?.craftor;
+                }
+            })
+            .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+                if(action.payload?.data?.user?.isCraftor){
+                    updateLocalStorage(action?.payload?.data?.craftor);
+                    state.craftorData = action?.payload?.data?.craftor;
+                }
+            })
+            .addCase(getCraftorProfile.pending, (state, _) => {
                 state.loading = true;
                 state.error = null;
             })
