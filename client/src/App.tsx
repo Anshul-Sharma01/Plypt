@@ -9,6 +9,7 @@ import Profile from './pages/profile/Profile';
 import GoogleAuthSuccess from './pages/auth/GoogleAuthSuccess';
 import CraftorProfile from './pages/profile/CraftorProfile';
 import Billing from './components/craftor/Billing';
+import MysticalLoader from './utils/MysticalLoader';
 
 const App: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const App: React.FC = () => {
 
         <Route path='/craftor-profile/:slug' element={<CraftorProfile/>}></Route>
         <Route path='/craftor/billing' element={<Billing/>}></Route>
+        <Route path='/loader' element={<MysticalLoader/>}></Route>
       </Routes>
     </Router>
   );
