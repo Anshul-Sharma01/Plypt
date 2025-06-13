@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, User, Calendar, Mail, CreditCard, Tag, List, DollarSign, Star, Eye, Zap, Crown, Moon } from 'lucide-react';
-import NavigationLayout from '../layouts/NavigationLayout';
+import NavigationLayout from '../../layouts/NavigationLayout';
 
 export interface Picture {
   public_id: string;
@@ -123,6 +123,15 @@ const CraftorProfile: React.FC = () => {
     </div>
   );
 
+  const GridBackground = () => (
+    <div className="absolute inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none">
+      <div
+        className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
+        style={{ backgroundSize: '40px 40px' }}
+      ></div>
+    </div>
+  );
+
   const getTierIcon = (tier: string) => {
     switch(tier) {
       case 'Elite': return <Crown className="w-5 h-5" />;
@@ -143,6 +152,7 @@ const CraftorProfile: React.FC = () => {
     <NavigationLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 text-gray-800 dark:text-white relative overflow-hidden">
         <FloatingOrbs />
+        <GridBackground/>
         
         {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-10 dark:opacity-5">

@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
 import './App.css'
 import { Toaster } from 'react-hot-toast';
-import Profile from './pages/Profile';
-import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
-import CraftorProfile from './pages/CraftorProfile';
+import Profile from './pages/profile/Profile';
+import GoogleAuthSuccess from './pages/auth/GoogleAuthSuccess';
+import CraftorProfile from './pages/profile/CraftorProfile';
 import Billing from './components/craftor/Billing';
 
 const App: React.FC = () => {

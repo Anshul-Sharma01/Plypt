@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, User, Mail, Lock, Camera, ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { createUserAccount } from '../features/user/userSlice';
-import type { AppDispatch } from '../store';
+import { createUserAccount } from '../../features/user/userSlice';
+import type { AppDispatch } from '../../store';
 
 const SignupPage: React.FC = () => {
   // Mock state for demo - replace with actual Redux logic

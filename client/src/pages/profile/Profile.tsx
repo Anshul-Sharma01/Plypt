@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Shield, User, Calendar, Mail, Edit, Camera } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../store';
-import NavigationLayout from '../layouts/NavigationLayout';
-import EnableCraftorPrivilegesModal from '../components/craftor/EnableCraftorPrivilegesModal';
-import UpdateProfileModal from '../components/profile/UpdateProfileModal';
-import UploadPictureModal from '../components/profile/UploadPictureModal';
+import type { AppDispatch, RootState } from '../../store';
+import NavigationLayout from '../../layouts/NavigationLayout';
+import EnableCraftorPrivilegesModal from '../../components/craftor/EnableCraftorPrivilegesModal';
+import UpdateProfileModal from '../../components/profile/UpdateProfileModal';
+import UploadPictureModal from '../../components/profile/UploadPictureModal';
 import { useDispatch } from 'react-redux';
-import { updatePictureThunk, updateProfileThunk } from '../features/user/userSlice';
+import { updatePictureThunk, updateProfileThunk } from '../../features/user/userSlice';
 import { useNavigate } from 'react-router-dom';
-import LoadingScreen from '../components/craftor/LoadingScreen';
-import { activateCraftorAccount } from '../features/craftor/craftorSlice';
+import LoadingScreen from '../../components/craftor/LoadingScreen';
+import { activateCraftorAccount } from '../../features/craftor/craftorSlice';
 
 interface UserData {
   name: string;

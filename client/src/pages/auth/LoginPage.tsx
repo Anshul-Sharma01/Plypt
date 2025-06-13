@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { authenticateUser, fetchCurrentUser } from '../features/user/userSlice';
-import { type RootState, type AppDispatch } from '../store';
+import { authenticateUser, fetchCurrentUser } from '../../features/user/userSlice';
+import { type RootState, type AppDispatch } from '../../store';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Cookies from "js-cookie";

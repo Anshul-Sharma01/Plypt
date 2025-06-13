@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useDispatch } from 'react-redux';
-import { fetchCurrentUser } from '../features/user/userSlice';
-import type { AppDispatch } from '../store';
+import { fetchCurrentUser } from '../../features/user/userSlice';
+import type { AppDispatch } from '../../store';
 
 const GoogleAuthSuccess = () => {
   const navigate = useNavigate();
