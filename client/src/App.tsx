@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
+import RequireAuth from './helpers/RequireAuth';
 
 // Lazy imports
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -12,7 +13,7 @@ const GoogleAuthSuccess = lazy(() => import('./pages/auth/GoogleAuthSuccess'));
 const CraftorProfile = lazy(() => import('./pages/profile/CraftorProfile'));
 const Billing = lazy(() => import('./components/craftor/Billing'));
 const MysticalLoader = lazy(() => import('./utils/MysticalLoader'));
-
+const Denied = lazy(() => import("./pages/Denied"));
 
 const App: React.FC = () => {
   return (
@@ -23,10 +24,13 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/profile" element={<Profile />} />
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
-          <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
-          <Route path="/craftor/billing" element={<Billing />} />
+          <Route element={<RequireAuth allowedRoles={["user"]} />}>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
+            <Route path="/craftor/billing" element={<Billing />} />
+          </Route>
+          <Route path='/denied' element={<Denied/>}></Route>
         </Routes>
       </Suspense>
     </Router>
