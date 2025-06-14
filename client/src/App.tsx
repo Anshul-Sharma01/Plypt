@@ -4,6 +4,7 @@ import './App.css';
 import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
 
+
 // Lazy imports
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -14,6 +15,7 @@ const CraftorProfile = lazy(() => import('./pages/profile/CraftorProfile'));
 const Billing = lazy(() => import('./components/craftor/Billing'));
 const MysticalLoader = lazy(() => import('./utils/MysticalLoader'));
 const Denied = lazy(() => import("./pages/Denied"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 const App: React.FC = () => {
   return (
@@ -31,6 +33,7 @@ const App: React.FC = () => {
             <Route path="/craftor/billing" element={<Billing />} />
           </Route>
           <Route path='/denied' element={<Denied/>}></Route>
+          <Route path='*' element={<NotFoundPage/>}></Route>
         </Routes>
       </Suspense>
     </Router>
