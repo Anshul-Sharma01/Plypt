@@ -51,10 +51,6 @@ const CraftorProfile: React.FC = () => {
   const dispatch = useDispatch < AppDispatch >();
   const selfSlug = useSelector((state : RootState) => state?.craftor?.craftorData?.slug);
   const navigate = useNavigate();
-  const error = useSelector((state : RootState) => state?.craftor?.error);
-  if(error){
-    navigate(-1);
-  }
 
   const {slug} = useParams();
   const [ craftorData, setCraftorData ] = useState({
@@ -70,7 +66,7 @@ const CraftorProfile: React.FC = () => {
       email: "shadow@craftorealm.com",
       createdAt: "2023-01-15T10:30:00Z"
     },
-    slug: "shadow-artisan",
+    slug: "anshul2926",
     totalPromptsSold: 247,
     prompts: [
       {
@@ -116,15 +112,27 @@ const CraftorProfile: React.FC = () => {
   });
 
   useEffect(() => {
-    if(slug !== selfSlug){
-      async function fetchCraftorProfile(){
-        const res = await dispatch(getCraftorProfile(slug));
-        console.log("Res from slug-fetch-craftor : ", res);
-        setCraftorData(res?.payload?.data)
-      }
+    if (!slug) {
+      navigate('/'); 
+      return;
+    }
+
+    if (slug !== selfSlug) {
+      const fetchCraftorProfile = async () => {
+        try {
+          const res = await dispatch(getCraftorProfile({slug}));
+          if (res.payload?.data) {
+            setCraftorData(res.payload.data);
+          }
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+          alert("Error occurred while fetching profile");
+        }
+      };
+      
       fetchCraftorProfile();
     }
-  }, [slug, selfSlug, dispatch])
+  }, [slug, selfSlug, dispatch, navigate]);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };

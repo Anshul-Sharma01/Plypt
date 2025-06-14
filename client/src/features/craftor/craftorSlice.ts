@@ -32,9 +32,9 @@ export const activateCraftorAccount = createAsyncThunk("auth/craftor/activate", 
     }
 })
 
-export const getCraftorProfile = createAsyncThunk("auth/craftor/get-profile", async(data : any, { rejectWithValue }) => {
+export const getCraftorProfile = createAsyncThunk("auth/craftor/get-profile", async({ slug } : any, { rejectWithValue }) => {
     try{
-        const promise = axiosInstance.get(`craftor/get-profile/${data.slug}`);
+        const promise = axiosInstance.get(`craftor/get-profile/${slug}`);
         toastHandler(promise, "Fetching profile...", "Profile Fetched Successfully");
         const res = await promise;
         return res.data;
@@ -89,6 +89,10 @@ const craftorSlice = createSlice({
             })
             .addCase(getCraftorProfile.pending, (state, _) => {
                 state.loading = true;
+                state.error = null;
+            })
+            .addCase(getCraftorProfile.fulfilled, (state, action) => {
+                state.loading = false;
                 state.error = null;
             })
             .addCase(getCraftorProfile.rejected, (state, action) => {
