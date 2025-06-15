@@ -10,8 +10,8 @@ export const createPromptThunk = createAsyncThunk("prompt/create", async(data : 
         toastHandler(promise, "Crafting Prompt...", "Prompt Crafted Successfully");
         const res = await promise;
         return res.data;
-    }catch(err){
-        console.log(`Error occurred while creating prompt : ${err}`);
+    }catch(err : any){
+        return rejectWithValue(err.response?.data?.message || "Error occurred while crafting new prompt");
     }
 })
 
@@ -21,11 +21,65 @@ export const getAllPromptsThunk = createAsyncThunk("prompt/get-all", async(_, { 
         toastHandler(promise, "Fetching all prompts...", "Successfully fetched all prompts");
         const res = await promise;
         return res.data;
-    }catch(err){
-        console.error(`Error occurred while fetching all prompts : ${err}`);
+    }catch(err : any){
+        return rejectWithValue(err.response?.data?.message || "Error occurred while fetching all prompts");
     }
 })
 
+export const getPromptBySlugThunk = createAsyncThunk("prompt/get-slug", async({ slug } : any, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.get(`prompt/slug/${slug}`);
+        toastHandler(promise, "Fetching prompt...", "Successfully fetched prompt");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err.response?.data?.message || "Error occurred while fetching prompt")
+    }
+})
+
+export const updatePromptDetailsThunk = createAsyncThunk("prompt/get-prompt-details", async(data : any, {rejectWithValue}) => {
+    try{
+        const promise = axiosInstance.patch(`prompt/update/${data.promptId}`);
+        toastHandler(promise, 'Updating Prompt Details', "Successfully updated prompt details !!");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err.response?.data?.message || "Error occurred while updating prompt details !!");
+    }
+})
+
+export const changeVisibilityThunk = createAsyncThunk("prompt/change-visibility", async(data: any, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.patch(`prompt/visibility/${data.promptId}`);
+        toastHandler(promise, "Changing Visibility...", "Prompt Visibility Changed Successfully");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while changing the visibility of the prompt");
+    }
+})
+
+export const addImageThunk = createAsyncThunk("prompt/add-image", async(data : any,  {rejectWithValue}) => {
+    try{
+        const promise = axiosInstance.post(`prompt/add-image/${data.promptId}`);
+        toastHandler(promise, "adding new prompt image...", "Successfully added prompt Image");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while adding Image to the prompt");
+    }
+})
+
+export const deleteImagesThunk = createAsyncThunk("prompt/delete-image", async(data : any, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.delete(`prompt/delete-images/${data.promptId}`);
+        toastHandler(promise, "deleting prompt images...", "Successfully deleted Prompt Images");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while deleting image ");
+    }
+})
 
 
 
@@ -33,8 +87,7 @@ const promptSlice = createSlice({
     name : "prompt",
     initialState : {},
     reducers : {},
-    extraReducers : (builder) => {
-        builder
-            
-    }
 })
+
+
+export default promptSlice.reducer;

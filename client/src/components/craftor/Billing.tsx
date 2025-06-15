@@ -23,7 +23,7 @@ interface InputFieldProps {
 
 const InputField = memo(({ label, value, onChange, icon, ring, isEditing }: InputFieldProps) => (
   <div
-    className={`bg-white/50 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700 shadow-md transform transition-all duration-300 hover:scale-105 ${isEditing ? ring : ''
+    className={`bg-white/50 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 backdrop-blur-sm rounded-xl p-6 border dark:text-white border-gray-200/50 dark:border-gray-700 shadow-md transform transition-all duration-300 hover:scale-105 ${isEditing ? ring : ''
       }`}
   >
     <div className="flex items-center gap-3 mb-4">

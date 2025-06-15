@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import session from 'express-session';
 import passport from './config/googlePassport.js';
+import { errorHandler } from "./utils/errorHandler.js";
 
 config({ path: "./.env" });
 const app = express();
@@ -28,18 +29,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Router Imports
-import userRouter from "./routes/user.routes.js";
-import craftorRouter from "./routes/craftor.routes.js";
-import commentRouter from "./routes/comment.routes.js";
-import promptRouter from "./routes/prompt.routes.js";
-import auctionRouter from "./routes/auction.routes.js";
-import purchaseRouter from "./routes/purchase.routes.js";
-import reviewRouter from "./routes/review.routes.js";
-import likeRouter from "./routes/like.routes.js";
-import bookmarkRouter from "./routes/bookmark.routes.js";
-import { errorHandler } from "./utils/errorHandler.js";
-import googleAuthRouter from './routes/googleAuth.routes.js';
+
+import { auctionRouter, bookmarkRouter, commentRouter, craftorRouter, googleAuthRouter, likeRouter, promptRouter, purchaseRouter, reviewRouter, userRouter, } from "./router.js";
+
+
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/craftor", craftorRouter);
