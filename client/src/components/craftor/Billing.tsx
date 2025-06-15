@@ -12,6 +12,39 @@ interface PaymentDetails {
   upiId: string;
 }
 
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  icon: React.ReactNode;
+  ring: string;
+  isEditing: boolean;
+}
+
+const InputField = memo(({ label, value, onChange, icon, ring, isEditing }: InputFieldProps) => (
+  <div
+    className={`bg-white/50 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700 shadow-md transform transition-all duration-300 hover:scale-105 ${isEditing ? ring : ''
+      }`}
+  >
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 bg-gray-500/10 dark:bg-gray-600/30 rounded-lg">
+        {icon}
+      </div>
+      <h3 className="font-semibold text-lg text-gray-700 dark:text-gray-100">{label}</h3>
+    </div>
+    {isEditing ? (
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        className="w-full p-3 bg-white/80 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+        autoFocus={isEditing}
+      />
+    ) : (
+      <p className="text-gray-900 dark:text-gray-100 font-mono text-lg">{value}</p>
+    )}
+  </div>
+));
 
 const Billing = () => {
   const initialCraftorData = {
