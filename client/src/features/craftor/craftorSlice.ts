@@ -22,7 +22,7 @@ const initialState : CraftorState = {
 
 export const activateCraftorAccount = createAsyncThunk("auth/craftor/activate", async(data : any, { rejectWithValue } ) => {
     try{
-        console.log(data);
+        // console.log(data);
         const promise = axiosInstance.post("craftor/activate", data);
         toastHandler(promise, "Activating Craftor Account", "Craftor Account Activated Successfully !");
         const res = await promise;
@@ -45,6 +45,7 @@ export const getCraftorProfile = createAsyncThunk("auth/craftor/get-profile", as
 
 export const updatePaymentDetailsThunk = createAsyncThunk("auth/craftor/update-payment", async(data : any, { rejectWithValue }) => {
     try{
+        console.log("Data : ", data);
        const promise = axiosInstance.patch(`craftor/update-payment/${data.slug}`, data);
        const res = await promise;
        return res.data;
