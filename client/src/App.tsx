@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
+import CreatePrompt from './pages/prompt/CreatePrompt';
 
 
 // Lazy imports
@@ -31,6 +32,7 @@ const App: React.FC = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
             <Route path="/craftor/billing" element={<Billing />} />
+            <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
           </Route>
           <Route path='/denied' element={<Denied/>}></Route>
           <Route path='*' element={<NotFoundPage/>}></Route>
