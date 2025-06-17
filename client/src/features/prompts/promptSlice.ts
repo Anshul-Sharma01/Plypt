@@ -87,6 +87,30 @@ const promptSlice = createSlice({
     name : "prompt",
     initialState : {},
     reducers : {},
+    extraReducers : (builder) => {
+        builder
+            .addCase(createPromptThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(getAllPromptsThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(getPromptBySlugThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(updatePromptDetailsThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(changeVisibilityThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(addImageThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(deleteImagesThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+    }
 })
 
 

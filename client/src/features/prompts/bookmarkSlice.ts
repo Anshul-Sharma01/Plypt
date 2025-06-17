@@ -30,7 +30,16 @@ export const fetchMyBookmarksThunk = createAsyncThunk("bookmark/my", async(_, {r
 const likeSlice = createSlice({
     name : "bookmark",
     initialState : {},
-    reducers : {}
+    reducers : {},
+    extraReducers : (builder) => {
+        builder
+            .addCase(toggleBookmarkThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(fetchMyBookmarksThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+    }
 })
 
 export default likeSlice.reducer;

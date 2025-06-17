@@ -43,7 +43,19 @@ export const getTopLikedPromptThunk = createAsyncThunk("like/top",async(_, {reje
 const likeSlice = createSlice({
     name : "like",
     initialState : {},
-    reducers : {}
+    reducers : {},
+    extraReducers : (builder) => {
+        builder
+            .addCase(toggleLikeThunk.rejected, (_, action ) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(getPromptLikesThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(getTopLikedPromptThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+    }
 })
 
 export default likeSlice.reducer;
