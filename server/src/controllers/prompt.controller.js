@@ -85,6 +85,8 @@ const getPromptBySlugController = asyncHandler(async(req, res) => {
     if(!prompt){
         throw new ApiError(404, "Invalid Slug, Prompt not found");
     }
+
+    prompt.content = "";
     return res.status(200)
     .json(
         new ApiResponse(
@@ -123,7 +125,8 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
     const allPrompts = await Prompt.find({})
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt : -1 });
+        .sort({ createdAt : -1 })
+        .select("-content")
     
     const totalPages = Math.ceil(totalPrompts / limit);
     if(page > totalPages){

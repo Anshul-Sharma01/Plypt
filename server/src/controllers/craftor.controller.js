@@ -45,6 +45,7 @@ const activateCraftorController = asyncHandler(async(req, res) => {
 
     craftor = await Craftor.findById(craftor?._id).populate("user");
     user.isCraftor = true;
+    user.role = "craftor";
     await user.save({ validateBeforeSave : false });
     
 

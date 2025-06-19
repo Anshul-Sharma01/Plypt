@@ -5,7 +5,6 @@ import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
 import CreatePrompt from './pages/prompt/CreatePrompt';
 
-
 // Lazy imports
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -17,6 +16,7 @@ const Billing = lazy(() => import('./components/craftor/Billing'));
 const MysticalLoader = lazy(() => import('./utils/MysticalLoader'));
 const Denied = lazy(() => import("./pages/Denied"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const Explore = lazy(() => import("./pages/prompt/Explore"));
 
 const App: React.FC = () => {
   return (
@@ -28,12 +28,21 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
-          <Route element={<RequireAuth allowedRoles={["user"]} />}>
+
+          <Route path='/explore' element={<Explore/>}></Route>
+
+
+          <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
             <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
             <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
             <Route path="/craftor/billing" element={<Billing />} />
             <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
           </Route>
+
+          
           <Route path='/denied' element={<Denied/>}></Route>
           <Route path='*' element={<NotFoundPage/>}></Route>
         </Routes>
