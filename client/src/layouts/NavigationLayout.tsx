@@ -127,10 +127,10 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   {
                     userData.isCraftor && (
                       <Link 
-                        to="/dashboard" 
+                        to="/prompts/my" 
                         className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
                       >
-                        Dashboard
+                        My Prompts
                       </Link>
                     )
                   }
@@ -209,16 +209,29 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
                         {
                           userData.isCraftor && (
-                            <Link
-                              to="/craftor/billing"
-                              onClick={closeUserDropdown}
-                              className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-                            >
-                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                              </svg>
-                              <span>Billing & Plans</span>
-                            </Link>
+
+
+                            <>
+                              <Link 
+                                to="/prompts/create"
+                                onClick={closeUserDropdown}
+                                className='flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
+                                
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-500"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                                <span>Create Prompt</span>
+                              </Link>
+                              <Link
+                                to="/craftor/billing"
+                                onClick={closeUserDropdown}
+                                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                              >
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <span>Billing & Plans</span>
+                              </Link>
+                            </>
 
                           )
                         }
