@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, use } from 'react';
 import { ChevronLeft, ChevronRight, Upload, X, Plus, Eye, EyeOff, Zap, Sparkles, Wand2, Code, PenTool, Palette, Megaphone, Briefcase, MoreHorizontal } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
+import toast from 'react-hot-toast';
 
 // Enhanced GridBackground with animated dots using purple and violet tones
 const GridBackground = () => (
@@ -142,15 +143,64 @@ const CreatePrompt = () => {
   };
 
   const generateDescriptionWithAI = async () => {
-    // Simulate AI generation
-    const descriptions = [
-      "A powerful AI prompt designed to enhance productivity and creativity through intelligent automation.",
-      "Streamline your workflow with this innovative prompt that delivers exceptional results every time.",
-      "Transform your ideas into reality with this cutting-edge AI prompt optimized for maximum impact."
-    ];
-    const randomDesc = descriptions[Math.floor(Math.random() * descriptions.length)];
-    handleInputChange('description', randomDesc);
+    if (formData.title.trim() === '') {
+      toast.error("Please enter the prompt title first");
+      return;
+    }
+
+  
+    const prompt = `
+      You are an expert AI prompt engineer and content writer. Your task is to write a compelling, creative, and clear description for a prompt that will be listed on a marketplace platform called Plypt. The prompt title is: "${formData.title}"
+      
+      The description should:
+      1. Explain the intent or purpose behind the prompt.
+      2. Mention what the user can expect as an output.
+      3. Highlight potential use-cases (creative, business, educational, technical, etc.)
+      4. Be engaging and well-structured — avoid overly technical jargon unless the prompt is domain-specific.
+      5. Stay under 100 words but be impactful.
+      
+      Write in a tone that is professional yet approachable, to appeal to creators, marketers, developers, and AI enthusiasts.
+      
+      Output format:
+      Prompt Title: ${formData.title}
+      Description:
+      `;
+  
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        })
+      });
+  
+      const data = await res.json();
+  
+      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        const aiDescription = data.candidates[0].content.parts[0].text;
+  
+        // Optional: Just extract the description part if Gemini returns the full output
+        const descMatch = aiDescription.match(/Description:\s*(.+)/s);
+        const finalDesc = descMatch ? descMatch[1].trim() : aiDescription.trim();
+  
+        handleInputChange('description', finalDesc);
+        toast.success("AI description generated successfully!");
+      } else {
+        toast.error("Failed to generate description.");
+        console.error('No valid response from Gemini:', data);
+      }
+  
+    } catch (error) {
+      console.error("Gemini API error:", error);
+      toast.error("Something went wrong while generating description.");
+    }
   };
+  
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
