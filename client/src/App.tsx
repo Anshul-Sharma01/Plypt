@@ -17,6 +17,7 @@ const MysticalLoader = lazy(() => import('./utils/MysticalLoader'));
 const Denied = lazy(() => import("./pages/Denied"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const Explore = lazy(() => import("./pages/prompt/Explore"));
+const Favourites = lazy(() => import("./pages/user/Favourites"));
 
 const App: React.FC = () => {
   return (
@@ -34,6 +35,7 @@ const App: React.FC = () => {
 
           <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
             <Route path="/profile" element={<Profile />} />
+            <Route path='/favourites' element={<Favourites/>}></Route>
           </Route>
 
           <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
