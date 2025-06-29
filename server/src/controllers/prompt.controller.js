@@ -52,7 +52,7 @@ const createPromptController = asyncHandler(async(req, res) => {
         slug : generatedSlug,
         description,
         content,
-        craftor : userId,
+        craftor : craftor._id,
         price,
         category,
         model,
@@ -124,11 +124,34 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
     }
 
 
-    const allPrompts = await Prompt.find({})
+    const rawPrompts = await Prompt.find({})
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt : -1 })
-        .select("-content")
+        .sort({ createdAt: -1 })
+        .select("-content -reviews -pictures -currentBid -updatedAt -visibility")
+        .populate({
+            path: "craftor",
+            populate: {
+                path: "user",
+                model: "User", 
+                select: "avatar name"
+            }
+        });
+
+    const formatPrompt = (prompt) => {
+        const user = prompt?.craftor?.user;
+            return {
+              ...prompt._doc,
+              craftor: {
+                name: user?.name || "",
+                avatar: user?.avatar?.secure_url || ""
+              }
+            };
+        };
+          
+    const allPrompts = rawPrompts.map(formatPrompt);
+          
+    
     
     const totalPages = Math.ceil(totalPrompts / limit);
     if(page > totalPages){

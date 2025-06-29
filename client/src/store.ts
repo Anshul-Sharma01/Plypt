@@ -1,13 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './features/user/userSlice';
 import craftorReducer from "./features/craftor/craftorSlice";
-import promptReduer from "./features/prompts/promptSlice";
-import prompt from "./features/prompts/promptSlice";
+import promptReducer from './features/prompts/promptSlice';
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    prompt : promptReduer,
+    prompt: promptReducer,
     craftor : craftorReducer
   },
 });

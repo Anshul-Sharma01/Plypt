@@ -3,6 +3,23 @@ import axiosInstance from "../../helpers/axiosInstance";
 import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
 
+interface PromptState {
+  prompts: any[];
+  totalPrompts: number;
+  totalPages: number;
+  currentPage: number;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: PromptState = {
+  prompts: [],
+  totalPrompts: 0,
+  totalPages: 1,
+  currentPage: 1,
+  loading: false,
+  error: null,
+};
 
 export const createPromptThunk = createAsyncThunk("prompt/create", async(data : any, { rejectWithValue }) => {
     try{
@@ -15,16 +32,24 @@ export const createPromptThunk = createAsyncThunk("prompt/create", async(data : 
     }
 })
 
-export const getAllPromptsThunk = createAsyncThunk("prompt/get-all", async(_, { rejectWithValue }) => {
-    try{
-        const promise = axiosInstance.get("prompt/");
-        toastHandler(promise, "Fetching all prompts...", "Successfully fetched all prompts");
-        const res = await promise;
-        return res.data;
-    }catch(err : any){
-        return rejectWithValue(err.response?.data?.message || "Error occurred while fetching all prompts");
+export const getAllPromptsThunk = createAsyncThunk(
+  "prompt/get-all",
+  async (
+    { page = 1, limit = 6 }: { page?: number; limit?: number } = {},
+    { rejectWithValue }
+  ) => {
+    try {
+      const promise = axiosInstance.get(`prompt/?page=${page}&limit=${limit}`);
+      toastHandler(promise, "Fetching all prompts...", "Successfully fetched all prompts");
+      const res = await promise;
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Error occurred while fetching all prompts"
+      );
     }
-})
+  }
+);
 
 export const getPromptBySlugThunk = createAsyncThunk("prompt/get-slug", async({ slug } : any, { rejectWithValue }) => {
     try{
@@ -81,18 +106,28 @@ export const deleteImagesThunk = createAsyncThunk("prompt/delete-image", async(d
     }
 })
 
-
-
 const promptSlice = createSlice({
     name : "prompt",
-    initialState : {},
+    initialState,
     reducers : {},
     extraReducers : (builder) => {
         builder
-            .addCase(createPromptThunk.rejected, (_, action) => {
-                toast.error(action.payload as string);
+            .addCase(getAllPromptsThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
             })
-            .addCase(getAllPromptsThunk.rejected, (_, action) => {
+            .addCase(getAllPromptsThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.prompts = action.payload.data.allPrompts;
+                state.totalPrompts = action.payload.totalPrompts;
+                state.totalPages = action.payload.totalPages;
+                state.currentPage = action.payload.currentPage;
+            })
+            .addCase(getAllPromptsThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(createPromptThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })
             .addCase(getPromptBySlugThunk.rejected, (_, action) => {
@@ -112,6 +147,5 @@ const promptSlice = createSlice({
             })
     }
 })
-
 
 export default promptSlice.reducer;
