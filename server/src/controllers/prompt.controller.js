@@ -8,7 +8,7 @@ import { isValidObjectId } from "mongoose";
 import { Craftor } from "../models/craftor.model.js";
 
 const createPromptController = asyncHandler(async(req, res) => {
-    const { title, description, content, price, category, model, tags} = req.body;
+    const { title, description, content, price, category, model, tags, visibility, isBiddable} = req.body;
     const userId = req?.user?._id;
     if(!title || !description || !content){
         throw new ApiError(400, "Title, Description and Content are required");
@@ -28,7 +28,7 @@ const createPromptController = asyncHandler(async(req, res) => {
     const images = [];
     if(req?.files || req?.files?.length > 0){
         for(const file of req.files){
-            const imgLocalPath =file.path;
+            const imgLocalPath = file.path;
             const img = await uploadOnCloudinary(imgLocalPath);
             if(!img){
                 throw new ApiError(400, "File Corrupted, Please try again later...");
@@ -57,6 +57,8 @@ const createPromptController = asyncHandler(async(req, res) => {
         category,
         model,
         tags,
+        visibility,
+        isBiddable,
         pictures : images,
     })
 

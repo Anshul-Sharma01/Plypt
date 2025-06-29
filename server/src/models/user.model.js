@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { ApiError } from "../utils/ApiError.js";
 
 
 const userSchema = new Schema({
@@ -106,6 +107,9 @@ userSchema.methods = {
     isPasswordCorrect : async function (password){
         if(!password || typeof password !== "string"){
             throw new Error("Password must be a string");
+        }
+        if (!this.password) {
+            throw new ApiError(400,"No password found on user");
         }
         return await bcrypt.compare(password, this.password);
     },

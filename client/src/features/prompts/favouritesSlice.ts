@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
 
 
+const initialState = {
+    allFavourites : []
+}
+
 export const toggleBookmarkThunk = createAsyncThunk("bookmark/toggle", async({ promptId } : any, {rejectWithValue}) => {
     try{
         const promise = axiosInstance.post(`bookmark/toggle/${promptId}`);
@@ -29,10 +33,11 @@ export const fetchMyBookmarksThunk = createAsyncThunk("bookmark/my", async(_, {r
 
 const likeSlice = createSlice({
     name : "bookmark",
-    initialState : {},
+    initialState,
     reducers : {},
     extraReducers : (builder) => {
         builder
+            
             .addCase(toggleBookmarkThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })

@@ -2,6 +2,10 @@ import React, { useState, useRef, use } from 'react';
 import { ChevronLeft, ChevronRight, Upload, X, Plus, Eye, EyeOff, Zap, Sparkles, Wand2, Code, PenTool, Palette, Megaphone, Briefcase, MoreHorizontal } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../store';
+import { createPromptThunk } from '../../features/prompts/promptSlice';
+import { useNavigate } from 'react-router-dom';
 
 // Enhanced GridBackground with animated dots using purple and violet tones
 const GridBackground = () => (
@@ -28,7 +32,7 @@ const CreatePrompt = () => {
     category: 'Other',
     model: 'GPT-3.5',
     tags: [],
-    pictures: [],
+    images: [],
     visibility: 'Draft',
     isBiddable: false
   });
@@ -79,6 +83,9 @@ const CreatePrompt = () => {
     }
   ];
 
+  const dispatch = useDispatch < AppDispatch >();
+  const navigate = useNavigate();
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -122,9 +129,39 @@ const CreatePrompt = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log('Form submitted:', formData);
+  const handleSubmit = async () => {
+    const form = new FormData();
+    
+    // Append all text fields
+    form.append("title", formData.title);
+    form.append("description", formData.description);
+    form.append("content", formData.content);
+    form.append("price", formData.price.toString());
+    form.append("category", formData.category);
+    form.append("model", formData.model);
+    form.append("visibility", formData.visibility);
+    form.append("isBiddable", formData.isBiddable.toString());
+  
+    // Append tags as individual fields
+    formData.tags.forEach((tag, index) => {
+      form.append(`tags[${index}]`, tag);
+    });
+  
+    // Append images
+    formData.images.forEach((image) => {
+      form.append("images", image);
+    });
+  
+    try {
+      const res = await dispatch(createPromptThunk(form));
+      // console.log("Res : ", res);
+      if(res?.payload?.statusCode === 201){
+        navigate("/explore");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to create prompt");
+    }
   };
 
   const isCurrentStepValid = () => {
@@ -206,14 +243,14 @@ const CreatePrompt = () => {
     const files = Array.from(event.target.files);
     setFormData(prev => ({
       ...prev,
-      pictures: [...prev.pictures, ...files]
+      images: [...prev.images, ...files]
     }));
   };
 
   const removePicture = (index) => {
     setFormData(prev => ({
       ...prev,
-      pictures: prev.pictures.filter((_, i) => i !== index)
+      images: prev.images.filter((_, i) => i !== index)
     }));
   };
 
@@ -510,7 +547,7 @@ const CreatePrompt = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  Pictures (Optional)
+                  images (Optional)
                 </label>
                 <div
                   className="border-3 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center hover:border-purple-500 dark:hover:border-purple-500 transition-all duration-300 cursor-pointer group bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900"
@@ -529,7 +566,7 @@ const CreatePrompt = () => {
                   <p className="text-sm text-gray-500 dark:text-gray-500">PNG, JPG up to 10MB</p>
                 </div>
                 <div className="flex flex-wrap gap-4 mt-6">
-                  {formData.pictures.map((picture, index) => (
+                  {formData.images.map((picture, index) => (
                     <div key={index} className="relative group animate-fadeIn">
                       <img
                         src={URL.createObjectURL(picture)}
@@ -583,7 +620,7 @@ const CreatePrompt = () => {
                 {currentStep === totalSteps ? (
                   <button
                     onClick={handleSubmit}
-                    className="inline-flex items-center px-10 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 hover:from-purple-700 hover:via-violet-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 animate-pulse-slow"
+                    className=" cursor-pointer inline-flex items-center px-10 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 hover:from-purple-700 hover:via-violet-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 animate-pulse-slow"
                   >
                     <Sparkles className="w-5 h-5 mr-2" />
                     Create Prompt
