@@ -60,6 +60,14 @@ const promptSchema = new Schema({
             ref : "Review"
         }
     ],
+    aiReview : {
+        rating : {
+            type : Number,
+        },
+        review : {
+            type : String,
+        }
+    },
     visibility : {
         type : String,
         enum : ["Public", "Private", "Draft"],

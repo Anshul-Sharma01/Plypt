@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { deleteMultipleFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
 import { Craftor } from "../models/craftor.model.js";
+import { inngest } from "../inngest/client.js";
 
 const createPromptController = asyncHandler(async(req, res) => {
     const { title, description, content, price, category, model, tags, visibility, isBiddable} = req.body;
@@ -64,6 +65,15 @@ const createPromptController = asyncHandler(async(req, res) => {
 
     craftor.prompts.push(prompt);
     await craftor.save();
+
+    await inngest.send({
+        name : "prompt/creation",
+        data : {
+            promptId : prompt?._id.toString()
+        },
+    })
+
+    console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
 
 
 
