@@ -4,6 +4,7 @@ import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { getAllPromptsThunk } from '../../features/prompts/promptSlice';
+import { Link } from 'react-router-dom';
 
 const ExplorePage = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -129,6 +130,7 @@ const ExplorePage = () => {
   interface Prompt {
     _id: string;
     title: string;
+    slug?: string;
     description: string;
     price: number;
     category: string;
@@ -212,11 +214,11 @@ const ExplorePage = () => {
               <span className="text-2xl font-bold text-gray-900 dark:text-white">${prompt.price}</span>
             )}
           </div>
-          <button className="bg-gradient-to-r cursor-pointer from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 group">
+          <Link to={`/view/${prompt?.slug}`} className="bg-gradient-to-r cursor-pointer from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 group">
             <Eye className="w-4 h-4" />
             View Details
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </Link>
         </div>
       </div>
     </div>

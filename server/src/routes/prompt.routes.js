@@ -11,7 +11,7 @@ router.use(authMiddleware);
 router.route("/my-prompts/:craftorId").get(getMyPromptsController);
 
 router.route("/").post(upload.array("images"), createPromptController);
-router.route("/slug/:slug").get(getPromptBySlugController);
+router.route("/view/:slug").get(getPromptBySlugController);
 router.route("/update/:promptId").patch(updatePromptDetailsController);
 router.route("/visibility/:promptId").patch(changeVisibilityController);
 router.route("/add-image/:promptId").post(upload.single("image"), addPromptImageController);

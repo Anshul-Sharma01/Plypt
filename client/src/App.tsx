@@ -19,6 +19,7 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const Explore = lazy(() => import("./pages/prompt/Explore"));
 const Favourites = lazy(() => import("./pages/user/Favourites"));
 const MyPrompts = lazy(() => import("./pages/prompt/MyPrompts"));
+const ViewPrompt = lazy(() => import("./pages/prompt/ViewPrompt"));
 
 const App: React.FC = () => {
   return (
@@ -32,6 +33,7 @@ const App: React.FC = () => {
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
 
           <Route path='/explore' element={<Explore/>}></Route>
+          <Route path='/view/:slug' element={<ViewPrompt/>}></Route>
 
 
           <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>

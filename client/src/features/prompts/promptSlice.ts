@@ -74,7 +74,7 @@ export const getMyPromptsThunk = createAsyncThunk(
 
 export const getPromptBySlugThunk = createAsyncThunk("prompt/get-slug", async({ slug } : any, { rejectWithValue }) => {
     try{
-        const promise = axiosInstance.get(`prompt/slug/${slug}`);
+        const promise = axiosInstance.get(`prompt/view/${slug}`);
         toastHandler(promise, "Fetching prompt...", "Successfully fetched prompt");
         const res = await promise;
         return res.data;

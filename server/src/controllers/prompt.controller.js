@@ -94,27 +94,43 @@ const createPromptController = asyncHandler(async(req, res) => {
     )
 })
 
-const getPromptBySlugController = asyncHandler(async(req, res) => {
+const getPromptBySlugController = asyncHandler(async (req, res) => {
     const { slug } = req.params;
-    if(!slug){
+
+    if (!slug) {
         throw new ApiError(400, "Please provide the slug");
     }
-    
-    const prompt = await Prompt.findOne({ slug });
-    if(!prompt){
+
+    let prompt = await Prompt.findOne({ slug })
+        .select("-content")
+        .populate({
+            path: "craftor",
+            populate: {
+                path: "user",
+                model: "User",
+                select: "avatar name",
+            },
+        });
+
+    if (!prompt) {
         throw new ApiError(404, "Invalid Slug, Prompt not found");
     }
 
-    prompt.content = "";
-    return res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            prompt,
-            "Prompt successfully fetched "
-        )
+    // ✅ Transform prompt properly
+    const user = prompt?.craftor?.user;
+
+    const modifiedPrompt = {
+        ...prompt._doc,
+        craftor: {
+            name: user?.name || "",
+            avatar: user?.avatar?.secure_url || "",
+        },
+    };
+
+    return res.status(200).json(
+        new ApiResponse(200, {prompt : modifiedPrompt }, "Prompt successfully fetched")
     );
-})
+});
 
 const getAllPromptsController = asyncHandler(async(req, res) => {
     let { page, limit } = req.query;
