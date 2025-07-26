@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "inngest-dev" : "npx inngest-cli@latest dev"
   },
   "keywords": [],
   "author": "",

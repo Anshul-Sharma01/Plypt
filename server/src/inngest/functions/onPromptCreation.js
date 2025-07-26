@@ -24,7 +24,7 @@ export const onPromptCreation = inngest.createFunction(
       });
 
       const aiResponse = await analyzePrompt(promptObject.content);
-
+      console.log(`Ai Response : ${aiResponse}`)
 
 
       const updatedPrompt = await step.run("update-ai-review", async () => {

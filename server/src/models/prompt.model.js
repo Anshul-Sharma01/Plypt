@@ -31,7 +31,7 @@ const promptSchema = new Schema({
     },
     category : {
         type : String,
-        enum : ["Coding", "Writing", "Design", "Marketing", "Bussiness", "Other"],
+        enum : ["Coding", "Writing", "Design", "Marketing", "Business", "Other"],
         default : "other"
     },
     model : {

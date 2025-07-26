@@ -3,15 +3,18 @@ import { Search, Filter, Star, Eye, Heart, ArrowRight, ChevronLeft, ChevronRight
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
-import { getAllPromptsThunk } from '../../features/prompts/promptSlice';
+import { getAllPromptsThunk, getMyPromptsThunk } from '../../features/prompts/promptSlice';
 
 const ExplorePage = () => {
   const dispatch: AppDispatch = useDispatch();
   const {
-    prompts: backendPrompts,
+    myPrompts: backendPrompts,
     loading,
     error,
   } = useSelector((state: any) => state.prompt);
+
+  const craftorData = useSelector((state : any) => state?.craftor);
+
 
   const [allPrompts, setAllPrompts] = useState<Prompt[]>([]);
   const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([]);
@@ -27,7 +30,7 @@ const ExplorePage = () => {
 
   // Fetch all prompts from backend once
   useEffect(() => {
-    dispatch(getAllPromptsThunk({ page: 1, limit: 1000 }));
+    dispatch(getMyPromptsThunk({ slug : craftorData?.slug, page: 1, limit: 1000 }));
   }, [dispatch]);
 
   // Store backend prompts in local state
@@ -36,6 +39,7 @@ const ExplorePage = () => {
       setAllPrompts(backendPrompts);
     }
   }, [backendPrompts]);
+  
 
   // Apply search, filter, sort
   useEffect(() => {
@@ -187,14 +191,6 @@ const ExplorePage = () => {
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <img
-              src={prompt?.craftor?.avatar }
-              alt={prompt?.craftor?.name}
-              className="w-6 h-6 rounded-full"
-            />
-            <span className="text-sm text-gray-600 dark:text-gray-300">{prompt?.craftor?.name}</span>
-          </div>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-500 fill-current" />
             <span className="text-sm font-medium text-gray-900 dark:text-white">{prompt?.aiReview?.rating || 0}</span>
@@ -273,10 +269,10 @@ const ExplorePage = () => {
               <FloatingOrbs />
               <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  Explore <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AI Prompts</span>
+                  My <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"> Prompts</span>
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                  Discover thousands of premium AI prompts crafted by expert prompt engineers
+                Your personal collection of AI prompts – crafted, saved, and ready for your next big idea
                 </p>
               </div>
 

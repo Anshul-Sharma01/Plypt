@@ -41,6 +41,8 @@ export const analyzePrompt = async (prompt) => {
 `);
 
   const raw = response.output[0].content;
+  console.log("AI Raw Response (raw content):", raw);
+
 
   try {
     const reg = raw.match(/```json\s*([\s\S]*?)\s*```/i);

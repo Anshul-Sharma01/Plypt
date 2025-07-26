@@ -24,6 +24,7 @@ const createPromptController = asyncHandler(async(req, res) => {
     if(slugExists){
         throw new ApiError(400, "Prompt Title already exists, please try some different title");
     }
+    console.log("It was here !!");
 
 
     const images = [];
@@ -66,15 +67,21 @@ const createPromptController = asyncHandler(async(req, res) => {
     craftor.prompts.push(prompt);
     await craftor.save();
 
-    await inngest.send({
-        name : "prompt/creation",
-        data : {
-            promptId : prompt?._id.toString()
+    await fetch(`http://localhost:5000/api/v1/inngest/prompt/creation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-    })
+        body: JSON.stringify({
+          data: {
+            promptId: prompt._id.toString()
+          }
+        })
+      });
+      
 
     console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
-
+    
 
 
     return res.status(201)
@@ -180,6 +187,58 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
             "All Prompts Fetched successfully"
         )
     )
+});
+
+const getMyPromptsController = asyncHandler(async(req, res) => {
+    let { page, limit } = req.query;
+    const { craftorSlug } = req.params;
+
+    page = parseInt(page) || 3;
+    limit = parseInt(limit) || 10;
+
+    const skip = (page - 1) * limit;
+    const totalPrompts = await Prompt.countDocuments();
+
+    if(totalPrompts == 0){
+        return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    myPrompts : [],
+                    totalPrompts,
+                    totalPages : 0,
+                    currentPage : page
+                }
+            )
+        )
+    }
+
+    const myPrompts = await Prompt.find({})
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt : -1 })
+        .select("-content -reviews -pictures -currentBid -updatedAt -visibility -craftor");
+
+    const totalPages = Math.ceil(totalPrompts / limit);
+    if(page > totalPages){
+        throw new ApiError(400, "Page exceeds total number of pages");
+    }
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                myPrompts,
+                totalPrompts,
+                totalPages,
+                currentPage : page
+            },
+            "My Prompts fetched successfully"
+        )
+    )
+
 });
 
 const changeVisibilityController = asyncHandler(async (req, res) => {
@@ -376,6 +435,7 @@ export {
     createPromptController,
     getPromptBySlugController,
     getAllPromptsController,
+    getMyPromptsController,
     changeVisibilityController,
     updatePromptDetailsController,
     deletePromptImagesController,

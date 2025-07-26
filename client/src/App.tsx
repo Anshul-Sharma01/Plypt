@@ -18,6 +18,7 @@ const Denied = lazy(() => import("./pages/Denied"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const Explore = lazy(() => import("./pages/prompt/Explore"));
 const Favourites = lazy(() => import("./pages/user/Favourites"));
+const MyPrompts = lazy(() => import("./pages/prompt/MyPrompts"));
 
 const App: React.FC = () => {
   return (
@@ -42,6 +43,7 @@ const App: React.FC = () => {
             <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
             <Route path="/craftor/billing" element={<Billing />} />
             <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
+            <Route path='/prompts/my' element={<MyPrompts/>} ></Route>
           </Route>
 
           

@@ -6,6 +6,10 @@ import morgan from "morgan";
 import session from 'express-session';
 import passport from './config/googlePassport.js';
 import { errorHandler } from "./utils/errorHandler.js";
+import { serve } from "inngest/express";
+import { inngest } from "./inngest/client.js";
+import { onPromptCreation } from "./inngest/functions/onPromptCreation.js";
+
 
 config({ path: "./.env" });
 const app = express();
@@ -44,6 +48,11 @@ app.use("/api/v1/review", reviewRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/bookmark", bookmarkRouter);
 app.use('/api/v1/auth', googleAuthRouter);
+
+app.use("/api/v1/inngest", serve({
+    client : inngest,
+    functions : [onPromptCreation]
+}))
 
 app.use(errorHandler);
 

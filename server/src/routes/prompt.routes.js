@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPromptController, getPromptBySlugController, getAllPromptsController, changeVisibilityController, updatePromptDetailsController, deletePromptImagesController, addPromptImageController } from "../controllers/prompt.controller.js";
+import { createPromptController, getPromptBySlugController, getAllPromptsController, changeVisibilityController, updatePromptDetailsController, deletePromptImagesController, addPromptImageController, getMyPromptsController } from "../controllers/prompt.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -7,6 +7,8 @@ const router = Router();
 
 router.route("/").get(getAllPromptsController);
 router.use(authMiddleware);
+
+router.route("/my-prompts/:slug").get(getMyPromptsController);
 
 router.route("/").post(upload.array("images"), createPromptController);
 router.route("/slug/:slug").get(getPromptBySlugController);

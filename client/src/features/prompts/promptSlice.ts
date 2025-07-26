@@ -5,6 +5,7 @@ import { toastHandler } from "../../helpers/toastHandler";
 
 interface PromptState {
   prompts: any[];
+  myPrompts : any[],
   totalPrompts: number;
   totalPages: number;
   currentPage: number;
@@ -14,6 +15,7 @@ interface PromptState {
 
 const initialState: PromptState = {
   prompts: [],
+  myPrompts : [],
   totalPrompts: 0,
   totalPages: 1,
   currentPage: 1,
@@ -49,6 +51,25 @@ export const getAllPromptsThunk = createAsyncThunk(
       );
     }
   }
+);
+
+export const getMyPromptsThunk = createAsyncThunk(
+    "prompt/my-prompts",
+    async(
+        { slug, page = 1, limit = 6,} : { page? : number, limit? : number, slug? : string} = {},
+        {rejectWithValue}
+    ) => {
+        try{
+            const promise = axiosInstance.get(`prompt/my-prompts/${slug}?page=${page}&limit=${limit}`);
+            toastHandler(promise, "Fetching your prompts...", "Successfully fetched your prompts");
+            const res = await promise;
+            return res.data;
+        }catch(err : any){
+            return rejectWithValue(
+                err?.response?.data?.message || "Error occurred while fetching your prompts"
+            )
+        }
+    }
 );
 
 export const getPromptBySlugThunk = createAsyncThunk("prompt/get-slug", async({ slug } : any, { rejectWithValue }) => {
@@ -126,6 +147,22 @@ const promptSlice = createSlice({
             .addCase(getAllPromptsThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(getMyPromptsThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getMyPromptsThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.myPrompts = action.payload.data.myPrompts;
+                state.totalPrompts = action.payload.totalPrompts;
+                state.totalPages = action.payload.totalPages;
+                state.currentPage = action.payload.currentPage;
+            })
+            .addCase(getMyPromptsThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+                
             })
             .addCase(createPromptThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
