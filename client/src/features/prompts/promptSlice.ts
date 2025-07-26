@@ -167,6 +167,9 @@ const promptSlice = createSlice({
             .addCase(createPromptThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })
+            .addCase(getPromptBySlugThunk.pending, (state, action) => {
+                state.loading = true;
+            })
             .addCase(getPromptBySlugThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })

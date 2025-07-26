@@ -117,13 +117,14 @@ const getPromptBySlugController = asyncHandler(async (req, res) => {
     }
 
     // ✅ Transform prompt properly
-    const user = prompt?.craftor?.user;
+    const user = prompt?.craftor;
 
     const modifiedPrompt = {
         ...prompt._doc,
         craftor: {
-            name: user?.name || "",
-            avatar: user?.avatar?.secure_url || "",
+            name: user?.user?.name || "",
+            slug : user?.slug,
+            avatar: user?.user?.avatar?.secure_url || "",
         },
     };
 

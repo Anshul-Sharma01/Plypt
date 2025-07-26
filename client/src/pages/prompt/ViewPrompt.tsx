@@ -6,14 +6,12 @@ import { useDispatch } from 'react-redux';
 import type{ AppDispatch } from '../../store';
 import { useParams } from 'react-router-dom';
 import { getPromptBySlugThunk } from '../../features/prompts/promptSlice';
+import MysticalLoader from '../../utils/MysticalLoader';
 
 interface Craftor {
   _id: string;
   name: string;
-  avatar: {
-    public_id: string;
-    secure_url: string;
-  };
+  avatar : string;
   slug: string;
 }
 
@@ -96,6 +94,9 @@ const ViewPrompt = () => {
   const userData = useSelector((state : any) => state?.user);
   const craftorData = useSelector((state : any) => state?.craftor);
   const dispatch = useDispatch < AppDispatch > ();
+  const loading = useSelector((state) => state?.prompt);
+
+
 
   useEffect(() => {
     const fetchPromptData = async () => {
@@ -247,19 +248,19 @@ const ViewPrompt = () => {
                 {/* Craftor Info */}
                 <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <img
-                    src={prompt?.craftor?.avatar?.secure_url}
+                    src={prompt?.craftor?.avatar}
                     alt={prompt?.craftor?.name}
                     className="w-12 h-12 rounded-full"
                     />
                     <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{prompt?.craftor.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">@{prompt?.craftor.slug}</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{prompt?.craftor?.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">@{prompt?.craftor?.slug}</p>
                     </div>
                 </div>
                 </div>
 
                 {/* Images */}
-                {prompt?.pictures.length > 0 && (
+                {prompt?.pictures?.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Preview Images</h2>
                     <div className="space-y-4">
