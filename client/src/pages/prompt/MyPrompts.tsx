@@ -30,7 +30,7 @@ const ExplorePage = () => {
 
   // Fetch all prompts from backend once
   useEffect(() => {
-    dispatch(getMyPromptsThunk({ slug : craftorData?.slug, page: 1, limit: 1000 }));
+    dispatch(getMyPromptsThunk({ craftorId : craftorData?.craftorData?._id, page: 1, limit: 1000 }));
   }, [dispatch]);
 
   // Store backend prompts in local state

@@ -8,7 +8,7 @@ const router = Router();
 router.route("/").get(getAllPromptsController);
 router.use(authMiddleware);
 
-router.route("/my-prompts/:slug").get(getMyPromptsController);
+router.route("/my-prompts/:craftorId").get(getMyPromptsController);
 
 router.route("/").post(upload.array("images"), createPromptController);
 router.route("/slug/:slug").get(getPromptBySlugController);

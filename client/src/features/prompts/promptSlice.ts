@@ -56,11 +56,11 @@ export const getAllPromptsThunk = createAsyncThunk(
 export const getMyPromptsThunk = createAsyncThunk(
     "prompt/my-prompts",
     async(
-        { slug, page = 1, limit = 6,} : { page? : number, limit? : number, slug? : string} = {},
+        { craftorId, page = 1, limit = 6,} : { page? : number, limit? : number, craftorId? : any} = {},
         {rejectWithValue}
     ) => {
         try{
-            const promise = axiosInstance.get(`prompt/my-prompts/${slug}?page=${page}&limit=${limit}`);
+            const promise = axiosInstance.get(`prompt/my-prompts/${craftorId}?page=${page}&limit=${limit}`);
             toastHandler(promise, "Fetching your prompts...", "Successfully fetched your prompts");
             const res = await promise;
             return res.data;

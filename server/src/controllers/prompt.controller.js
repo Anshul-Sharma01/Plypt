@@ -191,7 +191,7 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
 
 const getMyPromptsController = asyncHandler(async(req, res) => {
     let { page, limit } = req.query;
-    const { craftorSlug } = req.params;
+    const { craftorId } = req.params;
 
     page = parseInt(page) || 3;
     limit = parseInt(limit) || 10;
@@ -214,11 +214,13 @@ const getMyPromptsController = asyncHandler(async(req, res) => {
         )
     }
 
-    const myPrompts = await Prompt.find({})
+
+    const myPrompts = await Prompt.find({ craftor : craftorId })
         .skip(skip)
         .limit(limit)
         .sort({ createdAt : -1 })
         .select("-content -reviews -pictures -currentBid -updatedAt -visibility -craftor");
+    
 
     const totalPages = Math.ceil(totalPrompts / limit);
     if(page > totalPages){
