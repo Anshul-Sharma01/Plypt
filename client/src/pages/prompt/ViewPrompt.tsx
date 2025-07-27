@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Star, Eye, Heart, Share2, Calendar, Tag, User, ShoppingCart, Gavel, Clock, CheckCircle, Edit, Trash2, Plus, X } from 'lucide-react';
+import { Star, Eye, Heart, Share2, Calendar, Tag, User, ShoppingCart, Gavel, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
@@ -7,6 +7,7 @@ import type { AppDispatch } from '../../store';
 import { useParams } from 'react-router-dom';
 import { getPromptBySlugThunk } from '../../features/prompts/promptSlice';
 import MysticalLoader from '../../utils/MysticalLoader';
+import toast from 'react-hot-toast';
 
 interface Craftor {
   _id: string;
@@ -93,6 +94,7 @@ const ViewPrompt = () => {
   const [isAddImageDialogOpen, setIsAddImageDialogOpen] = useState(false);
   const [isVisibilityDialogOpen, setIsVisibilityDialogOpen] = useState(false);
   const [isDeleteImageDialogOpen, setIsDeleteImageDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -181,6 +183,11 @@ const ViewPrompt = () => {
     }
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Link copied to clipboard!');
+  };
+
   const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
 
   return (
@@ -245,7 +252,10 @@ const ViewPrompt = () => {
                     >
                       <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
                     </button>
-                    <button className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <button
+                      onClick={() => setIsShareDialogOpen(true)}
+                      className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
                       <Share2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -273,7 +283,7 @@ const ViewPrompt = () => {
                         onClick={() => setIsAddImageDialogOpen(true)}
                         className="p-2 rounded-lg bg-gray-100 cursor-pointer dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
-                        <Plus className="w-5 h-5 " />
+                        <Plus className="w-5 h-5" />
                       </button>
                     )}
                   </div>
@@ -490,113 +500,112 @@ const ViewPrompt = () => {
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Title
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            id="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Price
-                        </label>
-                        <input
-                            type="number"
-                            name="price"
-                            id="price"
-                            value={formData.price}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Description
-                        </label>
-                        <textarea
-                            name="description"
-                            id="description"
-                            value={formData.description}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Content
-                        </label>
-                        <textarea
-                            name="content"
-                            id="content"
-                            value={formData.content}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Category
-                        </label>
-                        <input
-                            type="text"
-                            name="category"
-                            id="category"
-                            value={formData.category}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Model
-                        </label>
-                        <input
-                            type="text"
-                            name="model"
-                            id="model"
-                            value={formData.model}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div className="md:col-span-2">
-                        <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Tags
-                        </label>
-                        <input
-                            type="text"
-                            name="tags"
-                            id="tags"
-                            value={formData.tags}
-                            onChange={handleInputChange}
-                            className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      id="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Price
+                    </label>
+                    <input
+                      type="number"
+                      name="price"
+                      id="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      id="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Content
+                    </label>
+                    <textarea
+                      name="content"
+                      id="content"
+                      value={formData.content}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      name="category"
+                      id="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Model
+                    </label>
+                    <input
+                      type="text"
+                      name="model"
+                      id="model"
+                      value={formData.model}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tags
+                    </label>
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      value={formData.tags}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
                 </div>
                 <div className="mt-6 flex justify-end">
-                    <button
-                        type="button"
-                        onClick={() => setIsEditDialogOpen(false)}
-                        className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    >
-                        Save
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditDialogOpen(false)}
+                    className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    Save
+                  </button>
                 </div>
-            </form>
-
+              </form>
             </div>
           </div>
         )}
@@ -726,6 +735,63 @@ const ViewPrompt = () => {
                 >
                   Delete
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Share Dialog */}
+        {isShareDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Share Prompt</h2>
+                <button
+                  onClick={() => setIsShareDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Share Link
+                  </label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      value={window.location.href}
+                      readOnly
+                      className="flex-1 p-2 block w-full rounded-l-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-4 py-2 inline-flex items-center justify-center rounded-r-md border border-l-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      <Copy className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <Facebook className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-400 text-white hover:bg-blue-500"
+                  >
+                    <Twitter className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800"
+                  >
+                    <Linkedin className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
