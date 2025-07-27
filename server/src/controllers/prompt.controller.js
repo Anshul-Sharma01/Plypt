@@ -123,6 +123,7 @@ const getPromptBySlugController = asyncHandler(async (req, res) => {
         ...prompt._doc,
         craftor: {
             name: user?.user?.name || "",
+            _id : user?._id,
             slug : user?.slug,
             avatar: user?.user?.avatar?.secure_url || "",
         },
