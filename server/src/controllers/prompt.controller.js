@@ -3,7 +3,7 @@ import slugify from "slugify";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { deleteMultipleFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary, deleteMultipleFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
 import { Craftor } from "../models/craftor.model.js";
 import { inngest } from "../inngest/client.js";
@@ -141,7 +141,7 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
     limit = parseInt(limit) || 10;
 
     const skip = ( page - 1 ) * limit;
-    const totalPrompts = await Prompt.countDocuments();
+    const totalPrompts = await Prompt.countDocuments({ visibility : "Public" });
 
     if(totalPrompts === 0){
         return res.status(200)
@@ -159,7 +159,7 @@ const getAllPromptsController = asyncHandler(async(req, res) => {
     }
 
 
-    const rawPrompts = await Prompt.find({})
+    const rawPrompts = await Prompt.find({ visibility : "Public"})
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })
@@ -270,18 +270,22 @@ const changeVisibilityController = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid Prompt ID");
     }
 
+
     const allowedVisibilities = ["Public", "Private", "Draft"];
     if (!allowedVisibilities.includes(visibility)) {
         throw new ApiError(400, "Invalid visibility option");
     }
 
-    const prompt = await Prompt.findById(promptId);
+    const prompt = await Prompt.findById(promptId).select("-content").populate("craftor");
 
     if (!prompt) {
         throw new ApiError(404, "Prompt not found");
     }
 
-    if (prompt.craftor.toString() !== userId.toString()) {
+    console.log("Craftor : ", prompt?.craftor);
+    console.log("userId : ", userId);
+
+    if (prompt?.craftor?.user?.toString() !== userId.toString()) {
         throw new ApiError(403, "You are not allowed to change visibility of this prompt");
     }
 
@@ -308,13 +312,13 @@ const updatePromptDetailsController = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Invalid Prompt Id");
     }
 
-    const prompt = await Prompt.findById(promptId);
+    const prompt = await Prompt.findById(promptId).populate("craftor");
 
     if(!prompt){
         throw new ApiError(404, "Prompt not found");
     }
 
-    if(prompt.craftor.toString() !== userId.toString()){
+    if(prompt?.craftor?.user?.toString() !== userId.toString()){
         throw new ApiError(403, "You are not allowed to update this prompt");
     }
 
@@ -353,6 +357,7 @@ const updatePromptDetailsController = asyncHandler(async(req, res) => {
     }
 
     await prompt.save();
+    prompt.content = "";
     return res.status(200)
     .json(
         new ApiResponse(
@@ -372,8 +377,8 @@ const addPromptImageController = asyncHandler(async(req, res) =>{
         throw new ApiError(400, "Invalid Prompt Id");
     }
 
-    const prompt = await Prompt.findById(promptId);
-    if(prompt.craftor.toString() !== userId.toString()){
+    const prompt = await Prompt.findById(promptId).populate("craftor").select("-content");
+    if(prompt?.craftor?.user.toString() !== userId.toString()){
         throw new ApiError(403, "You are not allowed to update this prompt");
     }
     if(!req.file){
@@ -418,9 +423,9 @@ const deletePromptImagesController = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Public IDs array is required");
     }
 
-    const prompt = await Prompt.findById(promptId);
+    const prompt = await Prompt.findById(promptId).populate("craftor");
     
-    if(prompt.craftor.toString() !== userId.toString()){
+    if(prompt?.craftor?.user.toString() !== userId.toString()){
         throw new ApiError(403, "You are not allowed to update this prompt");
     }
 
@@ -450,6 +455,44 @@ const deletePromptImagesController = asyncHandler(async(req, res) => {
     )
 })
 
+const deletePromptImageController = asyncHandler(async(req, res) => {
+    const { promptId } = req.params;
+    const userId = req.user?._id;
+    const { imgToDeletePublicId } = req.query;
+    console.log("imgToDeletePublicId : ", imgToDeletePublicId);
+    if(!isValidObjectId(promptId)){
+        throw new ApiError(400, "Prompt id is invalid");
+    }
+    if(!imgToDeletePublicId){
+        throw new ApiError(400, "Please provide the image to delete");
+    }
+
+    const prompt = await Prompt.findById(promptId).populate("craftor").select("-content");
+    
+    if(prompt?.craftor?.user.toString() !== userId.toString()){
+        throw new ApiError(403, "You are not allowed to update this prompt");
+    }
+
+
+    try {
+        await deleteFromCloudinary(imgToDeletePublicId);
+    } catch (err) {
+        console.log("Err : ", err);
+        throw new ApiError(500, "Failed to delete Images from Cloudinary");
+    }
+
+    prompt.pictures = prompt.pictures.filter((img) => img?.public_id != imgToDeletePublicId);
+    await prompt.save();
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            prompt,
+            "Images deleted Successfully"
+        )
+    )
+})
+
 
 export { 
     createPromptController,
@@ -459,5 +502,6 @@ export {
     changeVisibilityController,
     updatePromptDetailsController,
     deletePromptImagesController,
+    deletePromptImageController,
     addPromptImageController,
 }

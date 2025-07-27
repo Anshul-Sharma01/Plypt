@@ -85,7 +85,7 @@ export const getPromptBySlugThunk = createAsyncThunk("prompt/get-slug", async({ 
 
 export const updatePromptDetailsThunk = createAsyncThunk("prompt/get-prompt-details", async(data : any, {rejectWithValue}) => {
     try{
-        const promise = axiosInstance.patch(`prompt/update/${data.promptId}`);
+        const promise = axiosInstance.patch(`prompt/update/${data.promptId}`, data.formData);
         toastHandler(promise, 'Updating Prompt Details', "Successfully updated prompt details !!");
         const res = await promise;
         return res.data;
@@ -96,7 +96,8 @@ export const updatePromptDetailsThunk = createAsyncThunk("prompt/get-prompt-deta
 
 export const changeVisibilityThunk = createAsyncThunk("prompt/change-visibility", async(data: any, { rejectWithValue }) => {
     try{
-        const promise = axiosInstance.patch(`prompt/visibility/${data.promptId}`);
+        console.log("Data : ", data);
+        const promise = axiosInstance.patch(`prompt/visibility/${data.promptId}`, {visibility : data.visibility});
         toastHandler(promise, "Changing Visibility...", "Prompt Visibility Changed Successfully");
         const res = await promise;
         return res.data;
@@ -107,7 +108,7 @@ export const changeVisibilityThunk = createAsyncThunk("prompt/change-visibility"
 
 export const addImageThunk = createAsyncThunk("prompt/add-image", async(data : any,  {rejectWithValue}) => {
     try{
-        const promise = axiosInstance.post(`prompt/add-image/${data.promptId}`);
+        const promise = axiosInstance.post(`prompt/add-image/${data.promptId}`, data.image);
         toastHandler(promise, "adding new prompt image...", "Successfully added prompt Image");
         const res = await promise;
         return res.data;
@@ -116,10 +117,20 @@ export const addImageThunk = createAsyncThunk("prompt/add-image", async(data : a
     }
 })
 
-export const deleteImagesThunk = createAsyncThunk("prompt/delete-image", async(data : any, { rejectWithValue }) => {
+export const deleteImagesThunk = createAsyncThunk("prompt/delete-images", async(data : any, { rejectWithValue }) => {
     try{
         const promise = axiosInstance.delete(`prompt/delete-images/${data.promptId}`);
         toastHandler(promise, "deleting prompt images...", "Successfully deleted Prompt Images");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while deleting image ");
+    }
+})
+export const deleteImageThunk = createAsyncThunk("prompt/delete-image", async(data : any, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.delete(`prompt/delete-image/${data.promptId}?imgToDeletePublicId=${data.imgToDeletePublicId}`, );
+        toastHandler(promise, "deleting prompt image...", "Successfully deleted Prompt Image");
         const res = await promise;
         return res.data;
     }catch(err : any){

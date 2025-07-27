@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPromptController, getPromptBySlugController, getAllPromptsController, changeVisibilityController, updatePromptDetailsController, deletePromptImagesController, addPromptImageController, getMyPromptsController } from "../controllers/prompt.controller.js";
+import { createPromptController, getPromptBySlugController, getAllPromptsController, changeVisibilityController, updatePromptDetailsController, deletePromptImagesController, addPromptImageController, getMyPromptsController, deletePromptImageController } from "../controllers/prompt.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -16,5 +16,6 @@ router.route("/update/:promptId").patch(updatePromptDetailsController);
 router.route("/visibility/:promptId").patch(changeVisibilityController);
 router.route("/add-image/:promptId").post(upload.single("image"), addPromptImageController);
 router.route("/delete-images/:promptId").delete(deletePromptImagesController);
+router.route("/delete-image/:promptId").delete(deletePromptImageController);
 
 export default router; 
