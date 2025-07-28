@@ -11,7 +11,8 @@ import { v4 as uuidv4 } from "uuid";
 import { Craftor } from "../models/craftor.model.js";
 import redisClient from "../config/redisClient.js";
 
-const generateOrderId = () => `order_${uuidv4()}`;
+const generateOrderId = () => `ord_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+
 
 const purchasePromptController = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
@@ -45,14 +46,13 @@ const purchasePromptController = asyncHandler(async (req, res) => {
 
     const alreadyPurchased = await Purchase.findOne({ user: userId, prompt: promptId });
     if (alreadyPurchased) {
-        return res.status(200).json(
-            new ApiResponse(200, { alreadyPurchased: true }, "Prompt already purchased")
+        return res.status(400).json(
+            new ApiResponse(400, { alreadyPurchased: true }, "Prompt already purchased")
         );
     }
 
     const receipt = generateOrderId();
-    const amount = amt * 100;
-
+    const amount = amt;
     const paymentOrder = await razorpayService.createOrder(amount, currency, receipt);
 
     const purchase = await Purchase.create({ 
@@ -70,14 +70,14 @@ const purchasePromptController = asyncHandler(async (req, res) => {
         isVerified : false
     })
 
-    purchase.transaction = newTransaction;
+    purchase.transaction = newTransaction?._id;
     await purchase.save();
 
     return res.status(201).json(
         new ApiResponse(
             201,
             { 
-                purchaseId: purchase._id, 
+                receipt,
                 transaction : newTransaction,
                 promptId,  
             },

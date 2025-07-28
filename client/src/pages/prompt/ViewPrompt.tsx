@@ -4,11 +4,13 @@ import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { addImageThunk, changeVisibilityThunk, deleteImageThunk, getPromptBySlugThunk, updatePromptDetailsThunk } from '../../features/prompts/promptSlice';
 import MysticalLoader from '../../utils/MysticalLoader';
 import toast from 'react-hot-toast';
 import SkeletonLoader from './SkeletonLoader';
+import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
+import { handlePayment } from "../../helpers/handlePayment";
 
 
 interface Craftor {
@@ -115,6 +117,7 @@ const ViewPrompt = () => {
   const userData = useSelector((state: any) => state?.user);
   const craftorData = useSelector((state: any) => state?.craftor);
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPromptData = async () => {
@@ -143,8 +146,19 @@ const ViewPrompt = () => {
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
-  const handleBuyPrompt = () => {
-    console.log('Purchasing prompt:', prompt?._id);
+  const handleBuyPrompt = async() => {
+    const res = await dispatch(initiatePurchaseForPrompt({
+      promptId : prompt?._id,
+      amt : formData.price,
+      currency : "INR"
+    }));
+    if(res?.payload?.statusCode == 201){
+      console.log("sent request");
+      const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
+      const receipt = res?.payload?.data?.receipt;
+      handlePayment(razorpayOrderId, formData?.price, receipt, dispatch, navigate, userData);
+    }
+    console.log("Purchase order initiated : ", res);
   };
 
   const handlePlaceBid = () => {
