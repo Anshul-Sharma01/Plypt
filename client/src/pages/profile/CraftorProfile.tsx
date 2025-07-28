@@ -7,6 +7,7 @@ import { getCraftorProfile } from '../../features/craftor/craftorSlice';
 import type { AppDispatch } from '../../store';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
+import { Link } from 'react-router-dom';
 
 export interface Picture {
   public_id: string;
@@ -53,71 +54,14 @@ const CraftorProfile: React.FC = () => {
   const navigate = useNavigate();
 
   const {slug} = useParams();
-  const [ craftorData, setCraftorData ] = useState({
-    user: {
-      name: "Shadow Artisan",
-      username: "shadowcraft",
-      avatar: {
-        public_id: "avatar123",
-        secure_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-      },
-      bio: "Master of digital mysteries, weaving prompts that unlock the secrets of AI creativity. Each creation is a gateway to unexplored realms of possibility.",
-      role: "user",
-      email: "shadow@craftorealm.com",
-      createdAt: "2023-01-15T10:30:00Z"
-    },
-    slug: "anshul2926",
-    totalPromptsSold: 247,
-    prompts: [
-      {
-        _id: "1",
-        title: "Ethereal Visions",
-        description: "Unlock the mysteries of dreamlike imagery with this otherworldly prompt collection.",
-        price: 29.99,
-        pictures: [{
-          public_id: "prompt1",
-          secure_url: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop"
-        }],
-        rating: 4.9
-      },
-      {
-        _id: "2",
-        title: "Dark Renaissance",
-        description: "Channel the shadows of classical art into modern AI creations.",
-        price: 39.99,
-        pictures: [{
-          public_id: "prompt2",
-          secure_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop"
-        }],
-        rating: 4.8
-      },
-      {
-        _id: "3",
-        title: "Cosmic Enigma",
-        description: "Explore the infinite mysteries of space and time through AI artistry.",
-        price: 49.99,
-        pictures: [{
-          public_id: "prompt3",
-          secure_url: "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop"
-        }],
-        rating: 5.0
-      }
-    ],
-    paymentDetails: {
-      razorpayId: "rzp_live_••••••••",
-      bankAccount: "••••••••3847",
-      upiId: "shadow@paytm"
-    },
-    tier: "Elite"
-  });
+  const [ craftorData, setCraftorData ] = useState({});
 
   useEffect(() => {
     if (!slug) {
       navigate('/'); 
       return;
     }
-
-    if (slug !== selfSlug) {
+    if(true){
       const fetchCraftorProfile = async () => {
         try {
           const res = await dispatch(getCraftorProfile({slug}));
@@ -128,7 +72,9 @@ const CraftorProfile: React.FC = () => {
           console.error("Error fetching profile:", err);
           alert("Error occurred while fetching profile");
         }
-      };
+    }
+    
+
       
       fetchCraftorProfile();
     }
@@ -330,9 +276,10 @@ const CraftorProfile: React.FC = () => {
                           <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400 bg-clip-text text-transparent">
                             ${prompt?.price}
                           </span>
-                          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white font-medium hover:from-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105">
-                            Acquire
-                          </button>
+                          
+                          <Link to={`/view/${prompt?.slug}`} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white font-medium hover:from-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105">
+                            View Details
+                          </Link>
                         </div>
                       </div>
                     </div>

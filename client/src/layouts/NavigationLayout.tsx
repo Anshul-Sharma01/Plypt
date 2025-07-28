@@ -175,7 +175,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                         : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                     }`}>
                       {/* User Info Header */}
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="p-4 z-10 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                             {userData?.name?.charAt(0) || userData?.username?.charAt(0) || 'U'}

@@ -67,7 +67,7 @@ const getCraftorProfile = asyncHandler(async(req, res) => {
     if(!slug){
         throw new ApiError(400, "Please provide the slug identifier");
     }
-    const craftor = await Craftor.findOne({ slug }).populate("user");
+    const craftor = await Craftor.findOne({ slug }).populate("user").populate("prompts");
     if(!craftor){
         throw new ApiError(404, "Craftor not found");
     }

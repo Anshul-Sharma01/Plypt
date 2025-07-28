@@ -150,8 +150,12 @@ const userSlice = createSlice({
         state.userData = {};
         state.userRole = '';
       })
-      .addCase(logoutUserAccount.rejected, (_, action) => {
-        toast.error(action.payload as string);
+      .addCase(logoutUserAccount.rejected, (state, action) => {
+        localStorage.clear();
+        state.isLoggedIn = false;
+        state.userData = {};
+        state.userRole = '';
+        // toast.error(action.payload as string);
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action: PayloadAction<any>) => {
         if (action.payload?.data) {
