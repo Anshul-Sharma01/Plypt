@@ -29,7 +29,7 @@ const craftorSchema = new Schema({
     },
     tier : {
         type : String,
-        enum : ["Basic", "Pro", "Elite"],
+        enum : ["Basic", "Basic-Advanced", "Pro", "Elite"],
         default : "Basic"
     }
 }, {

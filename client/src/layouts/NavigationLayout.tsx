@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../store';
 import { logoutUserAccount } from '../features/user/userSlice';
 import { useDispatch } from 'react-redux';
+import { FileClock } from 'lucide-react';
 
 const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -13,6 +14,7 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const { isLoggedIn, userData } = useSelector((state: RootState) => state?.user);
+  const craftorData = useSelector((state) => state?.craftor?.craftorData) || null;
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -237,6 +239,14 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                         }
 
                         <Link
+                          to={`/purchase-history/${userData?.email}`}
+                          onClick={closeUserDropdown}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                        >
+                          <FileClock strokeWidth={2} className='w-4 h-4 text-gray-500'/>
+                          <span>Purchase History</span>
+                        </Link>
+                        <Link
                           to="/help"
                           onClick={closeUserDropdown}
                           className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
@@ -399,7 +409,14 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                     <span className="font-medium">Favourites</span>
                   </Link>
 
-                  
+                  <Link
+                    to={`/purchase-history/${userData?.email}`}
+                    onClick={closeMobileMenu}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 group"
+                  >
+                    <FileClock strokeWidth={2} className='w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400'/>
+                    <span>Purchase History</span>
+                  </Link>
 
                   <button
                     onClick={handleLogout}

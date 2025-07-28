@@ -65,8 +65,11 @@ const createPromptController = asyncHandler(async(req, res) => {
     })
 
     craftor.prompts.push(prompt);
-    await craftor.save();
+    if(craftor.tier == 'Basic' && craftor.prompts.length >= 5){
+        craftor.tier = 'Basic-Advanced';
+    }
 
+    await craftor.save();
     await fetch(`http://localhost:5000/api/v1/inngest/prompt/creation`, {
         method: "POST",
         headers: {
