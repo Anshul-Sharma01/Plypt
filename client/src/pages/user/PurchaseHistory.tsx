@@ -3,16 +3,16 @@ import { Calendar, Package, Filter, Search, Download, Eye, Star, User, CreditCar
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useDispatch } from 'react-redux';
 import { fetchPurchasingHistory } from '../../features/payment/paymentSlice';
-import type{ AppDispatch } from '../../store';
+import type { AppDispatch } from '../../store';
 
 const GridBackground = () => (
-    <div className="fixed inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none z-0">
-      <div
-        className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
-        style={{ backgroundSize: '40px 40px' }}
-      ></div>
-    </div>
-  );
+  <div className="fixed inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none z-0">
+    <div
+      className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
+      style={{ backgroundSize: '40px 40px' }}
+    ></div>
+  </div>
+);
 
 // Receipt Modal Component
 const ReceiptModal = ({ isOpen, onClose, purchase }) => {
@@ -204,13 +204,11 @@ const DownloadHandler = ({ purchase, onDownloadStart, onDownloadComplete }) => {
     setIsDownloading(true);
     setDownloadProgress(0);
     onDownloadStart?.(purchase);
-
     try {
       for (let i = 0; i <= 100; i += 10) {
         setDownloadProgress(i);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-
       const blob = new Blob([`# ${purchase.prompt.title}\n\n${purchase.prompt.description}\n\n## Content\n${purchase.prompt.content || 'Premium AI prompt content would be here...'}`],
         { type: 'text/markdown' });
       const url = URL.createObjectURL(blob);
@@ -260,123 +258,23 @@ const PurchaseHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-
-  // const mockPurchases = [
-  //   {
-  //     _id: '1',
-  //     amount: 299,
-  //     currency: 'INR',
-  //     status: 'Completed',
-  //     purchasedAt: new Date('2025-01-15'),
-  //     razorpayOrderId: 'order_123456',
-  //     prompt: {
-  //       _id: 'p1',
-  //       title: 'Advanced React Component Patterns',
-  //       description: 'Master advanced React patterns including compound components, render props, and custom hooks for building scalable applications.',
-  //       content: 'You are an expert React developer. Create a comprehensive guide that covers:\n\n1. Compound Components Pattern\n2. Render Props Pattern\n3. Custom Hooks Pattern\n4. Higher-Order Components\n5. Context API Best Practices\n\nFor each pattern, provide:\n- Detailed explanation\n- Code examples\n- Use cases\n- Pros and cons\n- Performance considerations',
-  //       category: 'Coding',
-  //       model: 'GPT-4',
-  //       rating: 4.8,
-  //       pictures: [{
-  //         secure_url: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop'
-  //       }],
-  //       craftor: {
-  //         _id: 'c1',
-  //         name: 'Sarah Johnson',
-  //         avatar: {
-  //           secure_url: 'https://images.unsplash.com/photo-1494790108755-2616b2e3c4c9?w=100&h=100&fit=crop&crop=face'
-  //         }
-  //       }
-  //     },
-  //     user: {
-  //       name: 'John Doe',
-  //       email: 'john@example.com',
-  //       avatar: {
-  //         secure_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-  //       }
-  //     }
-  //   },
-  //   {
-  //     _id: '2',
-  //     amount: 149,
-  //     currency: 'USD',
-  //     status: 'Pending',
-  //     purchasedAt: new Date('2025-01-20'),
-  //     razorpayOrderId: 'order_789012',
-  //     prompt: {
-  //       _id: 'p2',
-  //       title: 'Creative Writing Prompts for Fiction',
-  //       description: 'Unlock your creativity with these powerful writing prompts designed to spark imagination and overcome writer\'s block.',
-  //       content: 'You are a creative writing assistant. Generate compelling fiction prompts that:\n\n1. Character Development Prompts\n2. Plot Twist Generators\n3. Setting Descriptions\n4. Dialogue Starters\n5. Conflict Scenarios\n\nEach prompt should be:\n- Engaging and thought-provoking\n- Suitable for various genres\n- Designed to overcome writer\'s block\n- Scalable from short stories to novels',
-  //       category: 'Writing',
-  //       model: 'Claude',
-  //       rating: 4.6,
-  //       pictures: [{
-  //         secure_url: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=300&h=200&fit=crop'
-  //       }],
-  //       craftor: {
-  //         _id: 'c2',
-  //         name: 'Michael Chen',
-  //         avatar: {
-  //           secure_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
-  //         }
-  //       }
-  //     },
-  //     user: {
-  //       name: 'John Doe',
-  //       email: 'john@example.com',
-  //       avatar: {
-  //         secure_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-  //       }
-  //     }
-  //   },
-  //   {
-  //     _id: '3',
-  //     amount: 499,
-  //     currency: 'EUR',
-  //     status: 'Completed',
-  //     purchasedAt: new Date('2025-01-10'),
-  //     razorpayOrderId: 'order_345678',
-  //     prompt: {
-  //       _id: 'p3',
-  //       title: 'Marketing Automation Strategies',
-  //       description: 'Complete guide to implementing marketing automation workflows that convert leads into customers.',
-  //       content: 'You are a marketing automation expert. Create a comprehensive strategy guide covering:\n\n1. Lead Nurturing Workflows\n2. Email Marketing Automation\n3. Social Media Automation\n4. Customer Segmentation\n5. ROI Tracking and Analytics\n\nFor each strategy:\n- Step-by-step implementation\n- Tools and platforms recommendations\n- Performance metrics\n- A/B testing guidelines\n- Integration best practices',
-  //       category: 'Marketing',
-  //       model: 'GPT-4',
-  //       rating: 4.9,
-  //       pictures: [{
-  //         secure_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop'
-  //       }],
-  //       craftor: {
-  //         _id: 'c3',
-  //         name: 'Emma Wilson',
-  //         avatar: {
-  //           secure_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face'
-  //         }
-  //       }
-  //     },
-  //     user: {
-  //       name: 'John Doe',
-  //       email: 'john@example.com',
-  //       avatar: {
-  //         secure_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-  //       }
-  //     }
-  //   }
-  // ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const [purchasesCount, setPurchasesCount] = useState(0);
+  const itemsPerPage = 10;
 
   const dispatch = useDispatch<AppDispatch>();
-
-
 
   useEffect(() => {
     async function fetchPromptsHistory() {
       try {
-        const res = await dispatch(fetchPurchasingHistory());
-        console.log("Res : ", res );
-        setPurchases(res?.payload?.data?.purchases || []);
-        setFilteredPurchases(res?.payload?.data?.purchases || []);
+        const res = await dispatch(fetchPurchasingHistory({ page: currentPage, limit: itemsPerPage }));
+        console.log("Res : ", res);
+        if (currentPage === 1) {
+          setPurchases(res?.payload?.data?.purchases || []);
+        } else {
+          setPurchases(prevPurchases => [...prevPurchases, ...res?.payload?.data?.purchases] || []);
+        }
+        setPurchasesCount(res?.payload?.data?.count || 0);
       } catch (error) {
         console.error("Failed to fetch purchase history:", error);
       } finally {
@@ -384,8 +282,7 @@ const PurchaseHistory = () => {
       }
     }
     fetchPromptsHistory();
-  }, [dispatch]);
-  
+  }, [dispatch, currentPage]);
 
   useEffect(() => {
     let filtered = purchases.filter(purchase => {
@@ -394,7 +291,6 @@ const PurchaseHistory = () => {
       const matchesStatus = statusFilter === 'All' || purchase.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-
     if (sortBy === 'newest') {
       filtered.sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
     } else if (sortBy === 'oldest') {
@@ -404,7 +300,6 @@ const PurchaseHistory = () => {
     } else if (sortBy === 'amount-low') {
       filtered.sort((a, b) => a.amount - b.amount);
     }
-
     setFilteredPurchases(filtered);
   }, [searchTerm, statusFilter, sortBy, purchases]);
 
@@ -474,7 +369,11 @@ const PurchaseHistory = () => {
     setSelectedReceipt(null);
   };
 
-  if (isLoading) {
+  const handleLoadMore = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+  };
+
+  if (isLoading && currentPage === 1) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors relative">
         <GridBackground />
@@ -552,12 +451,11 @@ const PurchaseHistory = () => {
                 <p className="text-gray-500 dark:text-gray-500">
                   {searchTerm || statusFilter !== 'All'
                     ? 'Try adjusting your filters'
-                    : 'Start exploring and purchasing AI prompts'
-                  }
+                    : 'Start exploring and purchasing AI prompts'}
                 </p>
               </div>
             ) : (
-              filteredPurchases?.map((purchase) => (
+              filteredPurchases.map((purchase) => (
                 <div key={purchase._id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
@@ -640,9 +538,12 @@ const PurchaseHistory = () => {
               ))
             )}
           </div>
-          {filteredPurchases.length > 0 && (
+          {filteredPurchases.length < purchasesCount && (
             <div className="text-center mt-8">
-              <button className="px-6 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <button
+                onClick={handleLoadMore}
+                className="px-6 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
                 Load More Purchases
               </button>
             </div>

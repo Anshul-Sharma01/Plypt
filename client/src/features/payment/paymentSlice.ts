@@ -10,9 +10,9 @@ const initialState = {
 
 
 
-export const fetchPurchasingHistory = createAsyncThunk("purchase/history", async(_, {rejectWithValue}) => {
+export const fetchPurchasingHistory = createAsyncThunk("purchase/history", async({page, limit}, {rejectWithValue}) => {
     try{
-        const promise = axiosInstance.get("purchase/my-purchases");
+        const promise = axiosInstance.get(`purchase/my-purchases?page=${page}&limit=${limit}`);
         toastHandler(promise, "fetching purchase history.", "Successfully fetched purhcase history");
         const res = await promise;
         return res.data;

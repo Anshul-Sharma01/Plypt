@@ -90,27 +90,42 @@ const purchasePromptController = asyncHandler(async (req, res) => {
 const getUserPurchasedPromptsController = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
+
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10;
+
+
+    const skip = (page - 1) * limit;
+
+
     const userPurchases = await Purchase.find({ user: userId })
-    .populate({
-        path: "prompt",
-        populate: {
-            path: "craftor",
-            select: "name email avatar"
-        }
-    })
-    .populate("user", "name email avatar");
+        .populate({
+            path: "prompt",
+            populate: {
+                path: "craftor",
+                select: "name email avatar"
+            }
+        })
+        .populate("user", "name email avatar")
+        .skip(skip) 
+        .limit(limit);
+
+
+    const totalPurchases = await Purchase.countDocuments({ user: userId });
+
 
     return res.status(200).json(
         new ApiResponse(
             200,
             {
-                count: userPurchases.length,
+                count: totalPurchases, 
                 purchases: userPurchases
             },
             "Successfully fetched purchased prompts"
         )
     );
 });
+
 
 const completePurchaseController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
