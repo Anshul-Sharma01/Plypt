@@ -90,7 +90,15 @@ const purchasePromptController = asyncHandler(async (req, res) => {
 const getUserPurchasedPromptsController = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
-    const userPurchases = await Purchase.find({ user: userId }).populate("prompt").populate("craftor").populate("user, name email avatar") // avatar -> {public_id, secure_url}
+    const userPurchases = await Purchase.find({ user: userId })
+    .populate({
+        path: "prompt",
+        populate: {
+            path: "craftor",
+            select: "name email avatar"
+        }
+    })
+    .populate("user", "name email avatar");
 
     return res.status(200).json(
         new ApiResponse(
