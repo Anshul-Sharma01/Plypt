@@ -80,7 +80,13 @@ const promptSchema = new Schema({
     currentBid : {
         type : Number, 
         default : 0
-    }
+    },
+    buyers : [
+        {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "User"
+        }
+    ]
 }, {
     timestamps : true
 })

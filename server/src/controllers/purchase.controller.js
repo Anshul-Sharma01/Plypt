@@ -105,6 +105,7 @@ const getUserPurchasedPromptsController = asyncHandler(async (req, res) => {
 });
 
 const completePurchaseController = asyncHandler(async(req, res) => {
+    const userId = req.user?._id;
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     if(!razorpay_order_id || !razorpay_payment_id || !razorpay_signature){
@@ -146,6 +147,10 @@ const completePurchaseController = asyncHandler(async(req, res) => {
 
     craftor.totalPromptsSold = craftor.totalPromptsSold + 1;
     await craftor.save();
+
+    const prompt = await Prompt.findById(promptId);
+    prompt.buyers.push(userId);
+    await prompt.save();
 
     return res.status(200)
     .json(

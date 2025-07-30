@@ -49,6 +49,7 @@ interface Prompt {
     rating: number;
     review: string;
   };
+  buyers : [String];
   visibility: "Public" | "Private" | "Draft";
   isBiddable: boolean;
   currentBid: number;
@@ -114,7 +115,7 @@ const ViewPrompt = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const userData = useSelector((state: any) => state?.user);
+  const userData = useSelector((state: any) => state?.user?.userData);
   const craftorData = useSelector((state: any) => state?.craftor);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -143,6 +144,7 @@ const ViewPrompt = () => {
       });
     }
   }, [prompt]);
+  const alreadyPurchased = prompt?.buyers?.includes(userData?._id);
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
@@ -461,13 +463,21 @@ const ViewPrompt = () => {
                     )}
                   </div>
                   <div className="space-y-3">
-                    {prompt?.isBiddable ? (
+                  {!isCraftor && (
+                    prompt?.isBiddable ? (
                       <button
                         onClick={handlePlaceBid}
                         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
                       >
                         <Gavel className="w-5 h-5" />
                         Place Bid
+                      </button>
+                    ) : alreadyPurchased ? (
+                      <button
+                        disabled
+                        className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
+                      >
+                        Already Purchased
                       </button>
                     ) : (
                       <button
@@ -477,11 +487,8 @@ const ViewPrompt = () => {
                         <ShoppingCart className="w-5 h-5" />
                         Buy Now
                       </button>
-                    )}
-                    <button className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
-                      <Eye className="w-5 h-5" />
-                      Preview
-                    </button>
+                    )
+                  )}
                   </div>
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between text-sm">
