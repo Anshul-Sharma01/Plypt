@@ -19,6 +19,17 @@ export const toggleLikeThunk = createAsyncThunk("like/toggle", async({ promptId 
     }
 })
 
+export const getMyLikedPromptsThunk = createAsyncThunk("like/my-prompts", async(_, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.get(`like/my-liked`);
+        toastHandler(promise, "fething your liked prompts...", "Successfully fetched your liked prompts");
+        const res = await promise;
+        return res.data;
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while getting my liked prompts !!");
+    }
+})
+
 export const getPromptLikesThunk = createAsyncThunk("like/count", async({ promptId } : any, {rejectWithValue}) => {
     try{
         const promise = axiosInstance.get(`like/count/${promptId}`);
@@ -59,6 +70,9 @@ const likeSlice = createSlice({
                 toast.error(action.payload as string);
             })
             .addCase(getTopLikedPromptThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(getMyLikedPromptsThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })
     }

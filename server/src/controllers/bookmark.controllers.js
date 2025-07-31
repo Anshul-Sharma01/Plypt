@@ -16,12 +16,24 @@ const toggleBookmarkController = asyncHandler(async(req, res) => {
     
     if(bookmarkDocument){
         await bookmarkDocument.deleteOne();
+
+        let bookmarkedPrompts = await Bookmark.find({ user : userId })
+        .select("prompt -_id")
+        .lean();
+
+        bookmarkedPrompts = bookmarkedPrompts
+        .map(ele => ele?.prompt?.toString())
+        .filter(Boolean);
+
+
+
         return res.status(200)
         .json(
             new ApiResponse(
                 200,
                 {
                     bookmarked : false,
+                    bookmarkedPrompts
                 },
                 "Successfully deleted the bookmark document"
             )
@@ -31,13 +43,24 @@ const toggleBookmarkController = asyncHandler(async(req, res) => {
             user : userId,
             prompt : promptId
         });
+        
+        let bookmarkedPrompts = await Bookmark.find({ user : userId })
+        .select("prompt -_id")
+        .lean();
+
+        bookmarkedPrompts = bookmarkedPrompts
+        .map(ele => ele?.prompt?.toString())
+        .filter(Boolean);
+
+
         return res.status(201)
         .json(
             new ApiResponse(
                 201,
                 {
                     bookmarked : true,
-                    bookmarkedId : newBookmark._id
+                    bookmarkedId : newBookmark._id,
+                    bookmarkedPrompts
                 },
                 "Successfully created the bookmark document"
             )

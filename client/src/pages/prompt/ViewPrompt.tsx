@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Star, Eye, Heart, Share2, Calendar, Tag, User, ShoppingCart, Gavel, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin, LucideArrowDownRightFromSquare } from 'lucide-react';
+import { Star, Eye, Heart, Share2, Calendar, Tag, User, ShoppingCart, Gavel, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin, LucideArrowDownRightFromSquare, Bookmark } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
@@ -12,6 +12,7 @@ import SkeletonLoader from './SkeletonLoader';
 import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
 import { handlePayment } from "../../helpers/handlePayment";
 import { toggleLikeThunk } from '../../features/prompts/likeSlice';
+import { toggleBookmarkThunk } from '../../features/prompts/favouritesSlice';
 
 
 interface Craftor {
@@ -131,6 +132,12 @@ const ViewPrompt = () => {
       setIsLiked(userData?.likedPrompts?.includes(prompt._id.toString()));
     }
   }, [userData, prompt]);
+
+  useEffect(() => {
+    if (userData && prompt) {
+      setIsBookmarked(userData?.bookmarkedPrompts?.includes(prompt?._id?.toString()));
+    }
+  }, [userData, prompt]);
   
 
   useEffect(() => {
@@ -238,6 +245,14 @@ const handleLikedfunctionality = async () => {
   await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
   setIsLiked(!isLiked);
 };
+const handleBookmarkFunctionality = async() => {
+  const updatedBookmarkedPrompts = isBookmarked ? 
+  userData?.bookmarkedPrompts.filter((ele : string) => ele !== prompt?._id?.toString())
+  : [...userData?.bookmarkedPrompts, prompt?._id?.toString()];
+
+  await dispatch(toggleBookmarkThunk({ promptId : prompt?._id }));
+  setIsBookmarked(!isBookmarked);
+}
 
 
   const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
@@ -307,6 +322,16 @@ const handleLikedfunctionality = async () => {
                         }`}
                       >
                         <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                      </button>
+                      <button
+                        onClick={handleBookmarkFunctionality}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isBookmarked
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
                       </button>
                       <button
                         onClick={() => setIsShareDialogOpen(true)}

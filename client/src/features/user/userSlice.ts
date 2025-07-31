@@ -3,6 +3,7 @@ import axiosInstance from '../../helpers/axiosInstance';
 import toast from 'react-hot-toast';
 import { toastHandler } from '../../helpers/toastHandler';
 import { toggleLikeThunk } from '../prompts/likeSlice';
+import { toggleBookmarkThunk } from '../prompts/favouritesSlice';
 
 const updateLocalStorage = (user: any) => {
   localStorage.setItem('userData', JSON.stringify(user));
@@ -200,6 +201,18 @@ const userSlice = createSlice({
           updateLocalStorage({
             ...state.userData,
             likedPrompts : action?.payload?.data?.likedPrompts
+          })
+        }
+      })
+      .addCase(toggleBookmarkThunk.fulfilled, (state, action) => {
+        if(action?.payload?.data?.bookmarkedPrompts){
+          state.userData = {
+            ...state.userData,
+            bookmarkedPrompts : action?.payload?.data?.bookmarkedPrompts
+          };
+          updateLocalStorage({
+            ...state.userData,
+            bookmarkedPrompts : action?.payload?.data?.bookmarkedPrompts
           })
         }
       })

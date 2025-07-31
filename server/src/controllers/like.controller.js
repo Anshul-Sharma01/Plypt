@@ -21,8 +21,10 @@ const toggleLikeController = asyncHandler(async(req, res) => {
         .select("prompt -_id")
         .lean();
 
-        likedPrompts = likedPrompts.map(ele => ele?.prompt?.toString());
-        
+        likedPrompts = likedPrompts
+        .map(ele => ele?.prompt?.toString())
+        .filter(Boolean);
+
         return res.status(200)
         .json(
             new ApiResponse(
@@ -39,12 +41,14 @@ const toggleLikeController = asyncHandler(async(req, res) => {
             user : userId,
             prompt : promptId
         });
+
         let likedPrompts = await Like.find({ user : userId })
         .select("prompt -_id")
         .lean();
-        if(likedPrompts.length != 0){
-            likedPrompts = likedPrompts.map(ele => ele.prompt.toString()); 
-        }
+
+        likedPrompts = likedPrompts
+        .map(ele => ele.prompt.toString())
+        .filter(Boolean);
 
 
         return res.status(201)
@@ -80,6 +84,42 @@ const getPromptLikesController = asyncHandler(async(req, res) => {
             "Successfully fetched the prompt likes"
         )
     )
+})
+
+const getLikedPrompts = asyncHandler(async(req, res) => {
+    const userId = req.user?._id;
+
+    const count = await Like.countDocuments({ user : userId });
+    
+    let likedPrompts = await Like.find({ user: userId })
+    .populate({
+      path: 'prompt',
+      populate: {
+        path: 'craftor',
+        populate: {
+          path: 'user',
+          select: 'name avatar'
+        }
+      }
+    });
+  
+  
+
+
+    likedPrompts = likedPrompts.map(e => e?.prompt);
+
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                likedPrompts,
+                count
+            },
+            "User Liked Prompts fetched successfully"
+        )
+    );
 })
 
 const getTopLikedPromptsController = asyncHandler(async(req, res) => {
@@ -136,8 +176,11 @@ const getTopLikedPromptsController = asyncHandler(async(req, res) => {
     )
 })
 
+
+
 export {
     toggleLikeController,
     getPromptLikesController,
+    getLikedPrompts,
     getTopLikedPromptsController
 }

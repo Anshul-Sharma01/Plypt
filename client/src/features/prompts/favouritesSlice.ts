@@ -5,7 +5,7 @@ import { toastHandler } from "../../helpers/toastHandler";
 
 
 const initialState = {
-    allFavourites : []
+    bookmarkedPrompts : []
 }
 
 export const toggleBookmarkThunk = createAsyncThunk("bookmark/toggle", async({ promptId } : any, {rejectWithValue}) => {
@@ -43,6 +43,9 @@ const likeSlice = createSlice({
             })
             .addCase(fetchMyBookmarksThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
+            })
+            .addCase(toggleBookmarkThunk.fulfilled, (state, action) => {
+                state.bookmarkedPrompts = action?.payload?.data;
             })
     }
 })
