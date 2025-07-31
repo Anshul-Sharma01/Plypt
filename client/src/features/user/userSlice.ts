@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import axiosInstance from '../../helpers/axiosInstance';
 import toast from 'react-hot-toast';
 import { toastHandler } from '../../helpers/toastHandler';
+import { toggleLikeThunk } from '../prompts/likeSlice';
 
 const updateLocalStorage = (user: any) => {
   localStorage.setItem('userData', JSON.stringify(user));
@@ -189,6 +190,18 @@ const userSlice = createSlice({
       })
       .addCase(updatePictureThunk.rejected, (state, action) => {
         toast.error(action.payload as string);
+      })
+      .addCase(toggleLikeThunk.fulfilled, (state, action) => {
+        if(action?.payload?.data?.likedPrompts){
+          state.userData = {
+            ...state.userData,
+            likedPrompts : action?.payload?.data?.likedPrompts
+          };
+          updateLocalStorage({
+            ...state.userData,
+            likedPrompts : action?.payload?.data?.likedPrompts
+          })
+        }
       })
   },
 });

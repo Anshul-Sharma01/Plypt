@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { isValidObjectId } from "mongoose";
 import { Like } from "../models/like.model.js";
+import { User } from "../models/user.model.js";
 
 const toggleLikeController = asyncHandler(async(req, res) => {
     const userId = req?.user?._id;
@@ -16,12 +17,19 @@ const toggleLikeController = asyncHandler(async(req, res) => {
 
     if(likeDocument){
         await likeDocument.deleteOne();
+        let likedPrompts = await Like.find({ user : userId })
+        .select("prompt -_id")
+        .lean();
+
+        likedPrompts = likedPrompts.map(ele => ele?.prompt?.toString());
+        
         return res.status(200)
         .json(
             new ApiResponse(
                 200,
                 {
                     liked : false,
+                    likedPrompts
                 },
                 "Successfully deleted the like document"
             )
@@ -31,12 +39,21 @@ const toggleLikeController = asyncHandler(async(req, res) => {
             user : userId,
             prompt : promptId
         });
+        let likedPrompts = await Like.find({ user : userId })
+        .select("prompt -_id")
+        .lean();
+        if(likedPrompts.length != 0){
+            likedPrompts = likedPrompts.map(ele => ele.prompt.toString()); 
+        }
+
+
         return res.status(201)
         .json(
             new ApiResponse(
                 201,
                 {
-                    liked : true
+                    liked : true,
+                    likedPrompts,
                 },
                 "Successfully created the like document"
             )

@@ -6,6 +6,8 @@ import { usernameValidation, emailValidation, passwordValidation } from "../util
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { Craftor } from "../models/craftor.model.js";
+import { Bookmark } from "../models/bookmark.model.js";
+import { Like } from "../models/like.model.js";
 
 
 const cookieOptions = {
@@ -69,8 +71,10 @@ const registerUserController = asyncHandler(async(req, res) => {
             throw new ApiError(500, "Something went wrong while creating your account");
 
         }
+        
 
         const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(createdUser);
+
 
         return res.status(201)
         .cookie("accessToken", accessToken, cookieOptions)
@@ -112,6 +116,28 @@ const loginUserController = asyncHandler(async(req, res) => {
         throw new ApiError(500, "Something went wrong while logging in");
     }
 
+    let bookmarkedPrompts = await Bookmark.find({ user: loginUser._id })
+    .select("prompt -_id")
+    .lean();
+
+    bookmarkedPrompts = bookmarkedPrompts
+    .map(b => b?.prompt?.toString())
+    .filter(Boolean);
+
+    let likedPrompts = await Like.find({ user: loginUser._id })
+    .select("prompt -_id")
+    .lean();
+
+    likedPrompts = likedPrompts
+    .map(l => l?.prompt?.toString())
+    .filter(Boolean); 
+
+  
+  let loginUserObj = loginUser.toObject();
+  loginUserObj.likedPrompts = likedPrompts;
+  loginUserObj.bookmarkedPrompts = bookmarkedPrompts;
+  
+    
     if(loginUser.isCraftor){
         const craftor = await Craftor.findOne({ user : loginUser._id }).populate("user");
         return res
@@ -121,11 +147,12 @@ const loginUserController = asyncHandler(async(req, res) => {
         .json(
             new ApiResponse(
                 200,
-                { user : loginUser, craftor },
+                { user : loginUserObj, craftor },
                 "User Logged In Successfully"
             )
         )
     }
+
 
     return res
     .status(200)
@@ -134,7 +161,7 @@ const loginUserController = asyncHandler(async(req, res) => {
     .json(
         new ApiResponse(
             200,
-            { user: loginUser, accessToken, refreshToken },
+            { user: loginUserObj, accessToken, refreshToken },
             "User Logged In Successfully"
         )
     );

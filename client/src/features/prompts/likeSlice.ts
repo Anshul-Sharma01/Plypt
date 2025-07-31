@@ -3,6 +3,9 @@ import axiosInstance from "../../helpers/axiosInstance";
 import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
 
+const initialState = {
+    likedPrompts : []
+}
 
 export const toggleLikeThunk = createAsyncThunk("like/toggle", async({ promptId } : any, { rejectWithValue }) => {
     try{
@@ -42,12 +45,15 @@ export const getTopLikedPromptThunk = createAsyncThunk("like/top",async(_, {reje
 
 const likeSlice = createSlice({
     name : "like",
-    initialState : {},
+    initialState,
     reducers : {},
     extraReducers : (builder) => {
         builder
             .addCase(toggleLikeThunk.rejected, (_, action ) => {
                 toast.error(action.payload as string);
+            })
+            .addCase(toggleLikeThunk.fulfilled, (state, action) => {
+                state.likedPrompts = action?.payload?.data;
             })
             .addCase(getPromptLikesThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);

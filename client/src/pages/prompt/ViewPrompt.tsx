@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import SkeletonLoader from './SkeletonLoader';
 import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
 import { handlePayment } from "../../helpers/handlePayment";
+import { toggleLikeThunk } from '../../features/prompts/likeSlice';
 
 
 interface Craftor {
@@ -38,6 +39,8 @@ interface Prompt {
   description: string;
   content: string;
   craftor: Craftor;
+  likedPrompts : string[],
+  bookmarkedPrompts : string[],
   price: number;
   category: string;
   model: string;
@@ -65,6 +68,8 @@ const GridBackground = () => (
     ></div>
   </div>
 );
+
+
 
 const getCategoryColor = (category: string) => {
   const colors: { [key: string]: string } = {
@@ -94,6 +99,7 @@ const ViewPrompt = () => {
   const { slug } = useParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddImageDialogOpen, setIsAddImageDialogOpen] = useState(false);
@@ -119,6 +125,13 @@ const ViewPrompt = () => {
   const craftorData = useSelector((state: any) => state?.craftor);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (userData && prompt) {
+      setIsLiked(userData?.likedPrompts?.includes(prompt._id.toString()));
+    }
+  }, [userData, prompt]);
+  
 
   useEffect(() => {
     const fetchPromptData = async () => {
@@ -217,6 +230,16 @@ const ViewPrompt = () => {
     toast.success('Link copied to clipboard!');
   };
 
+const handleLikedfunctionality = async () => {
+  const updatedLikedPrompts = isLiked
+    ? userData?.likedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
+    : [...userData?.likedPrompts, prompt?._id?.toString()];
+
+  await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
+  setIsLiked(!isLiked);
+};
+
+
   const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
 
   return (
@@ -274,8 +297,9 @@ const ViewPrompt = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+
                       <button
-                        onClick={() => setIsLiked(!isLiked)}
+                        onClick={handleLikedfunctionality}
                         className={`p-2 rounded-lg transition-colors ${
                           isLiked
                             ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
