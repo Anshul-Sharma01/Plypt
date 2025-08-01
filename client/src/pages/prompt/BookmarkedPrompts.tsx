@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Heart, Filter, Search, Eye, Star, User, Clock, X, MapPin, Building } from 'lucide-react';
+import { Calendar, Bookmark, Filter, Search, Eye, Star, User, Clock, X, MapPin, Building } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useDispatch } from 'react-redux';
-import { getMyLikedPromptsThunk, toggleLikeThunk } from '../../features/prompts/likeSlice'; // You'll need to create this action
+import { fetchMyBookmarksThunk, toggleBookmarkThunk } from '../../features/prompts/favouritesSlice'; // You'll need to create this action
 import type { AppDispatch } from '../../store';
 
 const GridBackground = () => (
@@ -14,8 +14,8 @@ const GridBackground = () => (
   </div>
 );
 
-const LikedPrompts = () => {
-  const [likedPrompts, setLikedPrompts] = useState([]);
+const BookmarkedPrompts = () => {
+  const [bookmarkedPrompts, setBookmarkedPrompts] = useState([]);
   const [filteredPrompts, setFilteredPrompts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -28,27 +28,27 @@ const LikedPrompts = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    async function fetchLikedPromptsData() {
+    async function fetchBookmarkedPromptsData() {
       try {
-        const res = await dispatch(getMyLikedPromptsThunk({ page: currentPage, limit: itemsPerPage }));
+        const res = await dispatch(getMyBookmarkedPromptsThunk({ page: currentPage, limit: itemsPerPage }));
         console.log("Res : ", res);
         if (currentPage === 1) {
-          setLikedPrompts(res?.payload?.data?.likedPrompts || []);
+          setBookmarkedPrompts(res?.payload?.data?.bookmarkedPrompts || []);
         } else {
-          setLikedPrompts(prevPrompts => [...prevPrompts, ...res?.payload?.data?.likedPrompts] || []);
+          setBookmarkedPrompts(prevPrompts => [...prevPrompts, ...res?.payload?.data?.bookmarkedPrompts] || []);
         }
         setPromptsCount(res?.payload?.data?.count || 0);
       } catch (error) {
-        console.error("Failed to fetch liked prompts:", error);
+        console.error("Failed to fetch bookmarked prompts:", error);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchLikedPromptsData();
+    fetchBookmarkedPromptsData();
   }, [dispatch, currentPage]);
 
   useEffect(() => {
-    let filtered = likedPrompts.filter(prompt => {
+    let filtered = bookmarkedPrompts.filter(prompt => {
       const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             prompt.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || prompt.category === categoryFilter;
@@ -56,9 +56,9 @@ const LikedPrompts = () => {
     });
 
     if (sortBy === 'newest') {
-      filtered.sort((a, b) => new Date(b.likedAt) - new Date(a.likedAt));
+      filtered.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
     } else if (sortBy === 'oldest') {
-      filtered.sort((a, b) => new Date(a.likedAt) - new Date(b.likedAt));
+      filtered.sort((a, b) => new Date(a.bookmarkedAt) - new Date(b.bookmarkedAt));
     } else if (sortBy === 'rating-high') {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'rating-low') {
@@ -69,7 +69,7 @@ const LikedPrompts = () => {
       filtered.sort((a, b) => a.price - b.price);
     }
     setFilteredPrompts(filtered);
-  }, [searchTerm, categoryFilter, sortBy, likedPrompts]);
+  }, [searchTerm, categoryFilter, sortBy, bookmarkedPrompts]);
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -103,14 +103,14 @@ const LikedPrompts = () => {
     setCurrentPage(prevPage => prevPage + 1);
   };
 
-  const handleUnlike = async (promptId) => {
-    // Add your unlike functionality here
+  const handleRemoveBookmark = async (promptId) => {
+    // Add your remove bookmark functionality here
     try {
-      await dispatch(toggleLikeThunk({ promptId }));
-      setLikedPrompts(prev => prev.filter(prompt => prompt._id !== promptId));
-      console.log('Prompt unliked:', promptId);
+      await dispatch(toggleBookmarkThunk({ promptId }));
+      setBookmarkedPrompts(prev => prev.filter(prompt => prompt._id !== promptId));
+      console.log('Prompt bookmark removed:', promptId);
     } catch (error) {
-      console.error('Failed to unlike prompt:', error);
+      console.error('Failed to remove bookmark:', error);
     }
   };
 
@@ -132,10 +132,10 @@ const LikedPrompts = () => {
         <div className="relative z-10 container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 dark:from-purple-400 dark:to-pink-400">
-              Liked Prompts
+              Bookmarked Prompts
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Your collection of favorite AI prompts
+              Your saved AI prompts for quick access
             </p>
           </div>
 
@@ -175,8 +175,8 @@ const LikedPrompts = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="newest">Recently Liked</option>
-                  <option value="oldest">Oldest Liked</option>
+                  <option value="newest">Recently Bookmarked</option>
+                  <option value="oldest">Oldest Bookmarked</option>
                   <option value="rating-high">Highest Rated</option>
                   <option value="rating-low">Lowest Rated</option>
                   <option value="price-high">Highest Price</option>
@@ -189,14 +189,14 @@ const LikedPrompts = () => {
           <div className="space-y-6">
             {filteredPrompts?.length === 0 ? (
               <div className="text-center py-12">
-                <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <Bookmark className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                  No liked prompts found
+                  No bookmarked prompts found
                 </h3>
                 <p className="text-gray-500 dark:text-gray-500">
                   {searchTerm || categoryFilter !== 'All'
                     ? 'Try adjusting your filters'
-                    : 'Start exploring and liking AI prompts to see them here'}
+                    : 'Start exploring and bookmarking AI prompts to see them here'}
                 </p>
               </div>
             ) : (
@@ -261,11 +261,11 @@ const LikedPrompts = () => {
                           View Prompt
                         </button>
                         <button
-                          onClick={() => handleUnlike(prompt._id)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-sm rounded-lg transition-colors"
+                          onClick={() => handleRemoveBookmark(prompt._id)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-sm rounded-lg transition-colors"
                         >
-                          <Heart className="w-4 h-4 fill-current" />
-                          Unlike
+                          <Bookmark className="w-4 h-4 fill-current" />
+                          Remove Bookmark
                         </button>
                       </div>
                     </div>
@@ -292,4 +292,4 @@ const LikedPrompts = () => {
   );
 };
 
-export default LikedPrompts;
+export default BookmarkedPrompts;

@@ -23,6 +23,7 @@ const Favourites = lazy(() => import("./pages/user/Favourites"));
 const MyPrompts = lazy(() => import("./pages/prompt/MyPrompts"));
 const ViewPrompt = lazy(() => import("./pages/prompt/ViewPrompt"));
 const PurhcaseHistory = lazy(() => import("./pages/user/PurchaseHistory"));
+const BookmarkedPrompts = lazy(() => import("./pages/prompt/BookmarkedPrompts"));
 
 const App: React.FC = () => {
   return (
@@ -44,6 +45,7 @@ const App: React.FC = () => {
             <Route path='/favourites' element={<Favourites/>}></Route>
             <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>
             <Route path='/my-liked-prompts' element={<LikedPrompts/>}></Route>
+            <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
           </Route>
 
           <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
