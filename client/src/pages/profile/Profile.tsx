@@ -13,6 +13,7 @@ import LoadingScreen from '../../components/craftor/LoadingScreen';
 import { activateCraftorAccount } from '../../features/craftor/craftorSlice';
 import type { CraftorData } from './CraftorProfile';
 import toast from 'react-hot-toast';
+import LikedPrompts from '../prompt/LikedPrompts';
 
 interface UserData {
   name: string;
@@ -60,7 +61,6 @@ const Profile: React.FC = () => {
     setIsUpdateModalOpen(false);
   };
 
-
   const craftorDataFromRedux = useSelector((state: RootState) => state?.craftor?.craftorData);
 
   useEffect(() => {
@@ -70,7 +70,6 @@ const Profile: React.FC = () => {
       setCraftorData(null);
     }
   }, [userData, craftorDataFromRedux]);
-  
 
   const handleUpdateProfile = async (updatedData: { name: string | null; username: string | null; bio: string | null }) => {
     const formData = new FormData();
@@ -83,7 +82,6 @@ const Profile: React.FC = () => {
     if (updatedData.bio && updatedData.bio !== userData.bio) {
       formData.append("bio", updatedData.bio);
     }
-
     const res = await dispatch(updateProfileThunk(formData));
     console.log("Res : ", res);
   };
@@ -105,22 +103,19 @@ const Profile: React.FC = () => {
 
   const handleCraftorActivation = async (paymentDetails: PaymentDetails): Promise<number> => {
     setIsLoading(true);
-    let userPaymentDetails : PaymentDetails = {
-      bankAccount : "",
-      upiId : "",
-      razorpayId : ""
-    }
-    if(paymentDetails.bankAccount) userPaymentDetails.bankAccount = paymentDetails.bankAccount;
-    if(paymentDetails.razorpayId) userPaymentDetails.razorpayId = paymentDetails.razorpayId;
-    if(paymentDetails.upiId) userPaymentDetails.upiId = paymentDetails.upiId
+    let userPaymentDetails: PaymentDetails = {
+      bankAccount: "",
+      upiId: "",
+      razorpayId: ""
+    };
+    if (paymentDetails.bankAccount) userPaymentDetails.bankAccount = paymentDetails.bankAccount;
+    if (paymentDetails.razorpayId) userPaymentDetails.razorpayId = paymentDetails.razorpayId;
+    if (paymentDetails.upiId) userPaymentDetails.upiId = paymentDetails.upiId;
+
     try {
-      // console.log("Payment detaisl : ", userPaymentDetails);
-
       const response = await dispatch(activateCraftorAccount(userPaymentDetails));
-      console.log("Response : ", response);
-
       if (response.payload.statusCode === 201) {
-        const craftorData = useSelector((state : RootState) => state?.craftor?.craftorData);
+        const craftorData = useSelector((state: RootState) => state?.craftor?.craftorData);
         await new Promise(resolve => setTimeout(resolve, 3000));
         navigate(`/craftor-profile/${craftorData?.slug}`);
       } else {
@@ -140,19 +135,9 @@ const Profile: React.FC = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const GridBackground = () => (
-    <div className="absolute inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none">
-      <div
-        className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
-        style={{ backgroundSize: '40px 40px' }}
-      ></div>
-    </div>
-  );
-
   return (
     <NavigationLayout>
       <div className="relative min-h-screen w-full transition-all duration-500 bg-white dark:bg-black text-gray-900 dark:text-white">
-        <GridBackground />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden p-8">
             <div className="flex flex-col md:flex-row items-center md:items-start">
@@ -172,7 +157,6 @@ const Profile: React.FC = () => {
                   <Camera className="w-5 h-5 text-gray-700 dark:text-white" />
                 </button>
               </div>
-
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                   <div>
@@ -245,6 +229,9 @@ const Profile: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <LikedPrompts />
         </div>
       </div>
       <EnableCraftorPrivilegesModal

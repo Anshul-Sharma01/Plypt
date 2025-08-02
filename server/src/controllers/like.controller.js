@@ -86,41 +86,40 @@ const getPromptLikesController = asyncHandler(async(req, res) => {
     )
 })
 
-const getLikedPrompts = asyncHandler(async(req, res) => {
+const getLikedPrompts = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
+    const { page = 1, limit = 10 } = req.query; // Get pagination parameters from query
 
-    const count = await Like.countDocuments({ user : userId });
-    
-    let likedPrompts = await Like.find({ user: userId })
-    .populate({
-      path: 'prompt',
-      populate: {
-        path: 'craftor',
-        populate: {
-          path: 'user',
-          select: 'name avatar'
-        }
-      }
-    });
-  
-  
+    const count = await Like.countDocuments({ user: userId });
 
+    const likedPrompts = await Like.find({ user: userId })
+        .populate({
+            path: 'prompt',
+            populate: {
+                path: 'craftor',
+                populate: {
+                    path: 'user',
+                    select: 'name avatar'
+                }
+            }
+        })
+        .skip((page - 1) * limit) 
+        .limit(parseInt(limit));
 
-    likedPrompts = likedPrompts.map(e => e?.prompt);
-
+    const likedPromptsData = likedPrompts.map(e => e?.prompt);
 
     return res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            {
-                likedPrompts,
-                count
-            },
-            "User Liked Prompts fetched successfully"
-        )
-    );
-})
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    likedPrompts: likedPromptsData,
+                    count
+                },
+                "User Liked Prompts fetched successfully"
+            )
+        );
+});
 
 const getTopLikedPromptsController = asyncHandler(async(req, res) => {
     const topLikedPrompts = await Like.aggregate([

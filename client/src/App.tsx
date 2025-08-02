@@ -4,7 +4,6 @@ import './App.css';
 import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
 import CreatePrompt from './pages/prompt/CreatePrompt';
-import LikedPrompts from './pages/prompt/LikedPrompts';
 
 // Lazy imports
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -42,9 +41,7 @@ const App: React.FC = () => {
           <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
             <Route path="/profile" element={<Profile />} />
             <Route path='/favourites' element={<Favourites/>}></Route>
-            <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>
-            <Route path='/my-liked-prompts' element={<LikedPrompts/>}></Route>
-            <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
+            <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>            <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
           </Route>
 
           <Route element={<RequireAuth allowedRoles={["craftor"]} />}>

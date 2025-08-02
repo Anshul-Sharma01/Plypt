@@ -19,9 +19,9 @@ export const toggleLikeThunk = createAsyncThunk("like/toggle", async({ promptId 
     }
 })
 
-export const getMyLikedPromptsThunk = createAsyncThunk("like/my-prompts", async(_, { rejectWithValue }) => {
+export const getMyLikedPromptsThunk = createAsyncThunk("like/my-prompts", async({limit, page} : any, { rejectWithValue }) => {
     try{
-        const promise = axiosInstance.get(`like/my-liked`);
+        const promise = axiosInstance.get(`like/my-liked?limit=${limit}&page=${page}`);
         toastHandler(promise, "fething your liked prompts...", "Successfully fetched your liked prompts");
         const res = await promise;
         return res.data;
