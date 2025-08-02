@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Comment } from "../models/comment.model.js";
 import { isValidObjectId } from "mongoose";
+import { User } from "../models/user.model.js";
 
 const addCommentController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
@@ -13,11 +14,13 @@ const addCommentController = asyncHandler(async(req, res) => {
     if(!content){
         throw new ApiError(400, "Comment content is required");
     }
+    const user = await User.findById(userId).select("-email -username -bio -isCraftor -role -googleId -createdAt -updatedAt");
     const comment = await Comment.create({
         user : userId,
         prompt : promptId,
         content
     });
+    comment.user = user;
     return res.status(201)
     .json(
         new ApiResponse(
@@ -29,9 +32,9 @@ const addCommentController = asyncHandler(async(req, res) => {
 })
 
 const deleteCommentController = asyncHandler(async(req, res) => {
-    const { commentId } = req.body;
+    const { commentId } = req.params;
     if(!isValidObjectId(commentId)){
-        throw new ApiError(400, "Invalid Prompt Id");
+        throw new ApiError(400, "Invalid Comment Id");
     }
     const comment = await Comment.findByIdAndDelete(commentId);
     if(!comment){
@@ -52,13 +55,13 @@ const fetchAllCommentsController = asyncHandler(async(req, res) => {
     if(!isValidObjectId(promptId)){
         throw new ApiError(400, "Invalid Prompt Id");
     }
-    const comments = await Comment.find({ prompt : promptId });
-    if(prompt.length === 0){
+    const comments = await Comment.find({ prompt : promptId }).populate("user", "name avatar");
+    if(comments.length === 0){
         return res.status(200)
         .json(
             new ApiResponse(
                 200,
-                {},
+                comments,
                 "No comments yet !!"
             )
         )

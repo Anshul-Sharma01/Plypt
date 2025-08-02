@@ -7,7 +7,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.route("/add").post(addCommentController);
-router.route("/delete").delete(deleteCommentController);
+router.route("/delete/:commentId").delete(deleteCommentController);
 router.route("/fetch/:promptId").get(fetchAllCommentsController);
 
 export default router;

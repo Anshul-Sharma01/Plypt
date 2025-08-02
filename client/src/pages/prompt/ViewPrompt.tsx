@@ -13,7 +13,7 @@ import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
 import { handlePayment } from "../../helpers/handlePayment";
 import { toggleLikeThunk } from '../../features/prompts/likeSlice';
 import { toggleBookmarkThunk } from '../../features/prompts/favouritesSlice';
-
+import Comments from '../../components/prompt/Comments';
 
 interface Craftor {
   _id: string;
@@ -40,8 +40,8 @@ interface Prompt {
   description: string;
   content: string;
   craftor: Craftor;
-  likedPrompts : string[],
-  bookmarkedPrompts : string[],
+  likedPrompts: string[];
+  bookmarkedPrompts: string[];
   price: number;
   category: string;
   model: string;
@@ -53,7 +53,7 @@ interface Prompt {
     rating: number;
     review: string;
   };
-  buyers : [String];
+  buyers: [String];
   visibility: "Public" | "Private" | "Draft";
   isBiddable: boolean;
   currentBid: number;
@@ -68,8 +68,6 @@ const GridBackground = () => (
     ></div>
   </div>
 );
-
-
 
 const getCategoryColor = (category: string) => {
   const colors: { [key: string]: string } = {
@@ -120,7 +118,6 @@ const ViewPrompt = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const userData = useSelector((state: any) => state?.user?.userData);
   const craftorData = useSelector((state: any) => state?.craftor);
   const dispatch = useDispatch<AppDispatch>();
@@ -137,7 +134,6 @@ const ViewPrompt = () => {
       setIsBookmarked(userData?.bookmarkedPrompts?.includes(prompt?._id?.toString()));
     }
   }, [userData, prompt]);
-  
 
   useEffect(() => {
     const fetchPromptData = async () => {
@@ -163,17 +159,17 @@ const ViewPrompt = () => {
       });
     }
   }, [prompt]);
-  const alreadyPurchased = prompt?.buyers?.includes(userData?._id);
 
+  const alreadyPurchased = prompt?.buyers?.includes(userData?._id);
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
-  const handleBuyPrompt = async() => {
+  const handleBuyPrompt = async () => {
     const res = await dispatch(initiatePurchaseForPrompt({
-      promptId : prompt?._id,
-      amt : formData.price,
-      currency : "INR"
+      promptId: prompt?._id,
+      amt: formData.price,
+      currency: "INR"
     }));
-    if(res?.payload?.statusCode == 201){
+    if (res?.payload?.statusCode == 201) {
       console.log("sent request");
       const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
       const receipt = res?.payload?.data?.receipt;
@@ -194,9 +190,9 @@ const ViewPrompt = () => {
     });
   };
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await dispatch(updatePromptDetailsThunk({ promptId : prompt?._id, formData}));
+    const res = await dispatch(updatePromptDetailsThunk({ promptId: prompt?._id, formData }));
     setPrompt(res?.payload?.data);
     setIsEditDialogOpen(false);
   };
@@ -208,24 +204,22 @@ const ViewPrompt = () => {
     }
     const imgData = new FormData();
     imgData.append("image", fileInputRef?.current?.files[0]);
-    const res = await dispatch(addImageThunk({ promptId : prompt?._id, image : imgData}));
+    const res = await dispatch(addImageThunk({ promptId: prompt?._id, image: imgData }));
     setPrompt(res?.payload?.data);
     setIsAddImageDialogOpen(false);
   };
 
-  const handleVisibilityChange = async(e: React.FormEvent) => {
+  const handleVisibilityChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(changeVisibilityThunk({ promptId : prompt?._id, visibility : formData.visibility }));
+    await dispatch(changeVisibilityThunk({ promptId: prompt?._id, visibility: formData.visibility }));
     setIsVisibilityDialogOpen(false);
   };
 
-  const handleDeleteImage = async (e : React.FormEvent) => {
+  const handleDeleteImage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (imageToDelete) {
-      
-      const res = await dispatch(deleteImageThunk({ promptId: prompt?._id, imgToDeletePublicId : imageToDelete }));
+      const res = await dispatch(deleteImageThunk({ promptId: prompt?._id, imgToDeletePublicId: imageToDelete }));
       setPrompt(res?.payload?.data);
-
       setIsDeleteImageDialogOpen(false);
       setImageToDelete(null);
     }
@@ -236,32 +230,28 @@ const ViewPrompt = () => {
     toast.success('Link copied to clipboard!');
   };
 
-const handleLikedfunctionality = async () => {
-  const updatedLikedPrompts = isLiked
-    ? userData?.likedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
-    : [...userData?.likedPrompts, prompt?._id?.toString()];
+  const handleLikedfunctionality = async () => {
+    const updatedLikedPrompts = isLiked
+      ? userData?.likedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
+      : [...userData?.likedPrompts, prompt?._id?.toString()];
+    await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
+    setIsLiked(!isLiked);
+  };
 
-  await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
-  setIsLiked(!isLiked);
-};
-
-const handleBookmarkFunctionality = async () => {
-  const bookmarkedPrompts = userData?.bookmarkedPrompts || [];
-  const updatedBookmarkedPrompts = isBookmarked
-    ? bookmarkedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
-    : [...bookmarkedPrompts, prompt?._id?.toString()];
-
-  await dispatch(toggleBookmarkThunk({ promptId: prompt?._id }));
-  setIsBookmarked(!isBookmarked);
-};
-
-
+  const handleBookmarkFunctionality = async () => {
+    const bookmarkedPrompts = userData?.bookmarkedPrompts || [];
+    const updatedBookmarkedPrompts = isBookmarked
+      ? bookmarkedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
+      : [...bookmarkedPrompts, prompt?._id?.toString()];
+    await dispatch(toggleBookmarkThunk({ promptId: prompt?._id }));
+    setIsBookmarked(!isBookmarked);
+  };
 
   const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
 
   return (
     isLoading ? (
-      <SkeletonLoader/>
+      <SkeletonLoader />
     ) : (
       <NavigationLayout>
         <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
@@ -314,7 +304,6 @@ const handleBookmarkFunctionality = async () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-
                       <button
                         onClick={handleLikedfunctionality}
                         className={`p-2 rounded-lg transition-colors ${
@@ -344,21 +333,19 @@ const handleBookmarkFunctionality = async () => {
                     </div>
                   </div>
                   {/* Craftor Info */}
-                  {
-                    !isCraftor && (
-                      <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <img
-                          src={prompt?.craftor?.avatar}
-                          alt={prompt?.craftor?.name}
-                          className="w-12 h-12 rounded-full"
-                        />
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">{prompt?.craftor?.name}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">@{prompt?.craftor?.slug}</p>
-                        </div>
+                  {!isCraftor && (
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <img
+                        src={prompt?.craftor?.avatar}
+                        alt={prompt?.craftor?.name}
+                        className="w-12 h-12 rounded-full"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{prompt?.craftor?.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">@{prompt?.craftor?.slug}</p>
                       </div>
-                    )
-                  }
+                    </div>
+                  )}
                 </div>
                 {/* Images */}
                 {prompt?.pictures?.length > 0 && (
@@ -514,32 +501,32 @@ const handleBookmarkFunctionality = async () => {
                     )}
                   </div>
                   <div className="space-y-3">
-                  {!isCraftor && (
-                    prompt?.isBiddable ? (
-                      <button
-                        onClick={handlePlaceBid}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
-                      >
-                        <Gavel className="w-5 h-5" />
-                        Place Bid
-                      </button>
-                    ) : alreadyPurchased ? (
-                      <button
-                        disabled
-                        className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
-                      >
-                        Already Purchased
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleBuyPrompt}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
-                      >
-                        <ShoppingCart className="w-5 h-5" />
-                        Buy Now
-                      </button>
-                    )
-                  )}
+                    {!isCraftor && (
+                      prompt?.isBiddable ? (
+                        <button
+                          onClick={handlePlaceBid}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
+                        >
+                          <Gavel className="w-5 h-5" />
+                          Place Bid
+                        </button>
+                      ) : alreadyPurchased ? (
+                        <button
+                          disabled
+                          className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
+                        >
+                          Already Purchased
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleBuyPrompt}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
+                        >
+                          <ShoppingCart className="w-5 h-5" />
+                          Buy Now
+                        </button>
+                      )
+                    )}
                   </div>
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between text-sm">
@@ -576,320 +563,324 @@ const handleBookmarkFunctionality = async () => {
                 </div>
               </div>
             </div>
+            {/* Comments Section */}
+            <div className="mt-8">
+              <Comments promptId={prompt?._id} totalComments={prompt?.reviews?.length} />
+            </div>
           </div>
-          {/* Edit Dialog */}
-          {isEditDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Prompt</h2>
-                  <button
-                    onClick={() => setIsEditDialogOpen(false)}
-                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        name="title"
-                        id="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Price
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        id="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Description
-                      </label>
-                      <textarea
-                        name="description"
-                        id="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Content
-                      </label>
-                      <textarea
-                        name="content"
-                        id="content"
-                        value={formData.content}
-                        onChange={handleInputChange}
-                        placeholder='⚠️For security purposes, the actual content is not shown here, you can still update your prompt... ⚠️'
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 bg-gray-200 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Category
-                      </label>
-                      <input
-                        type="text"
-                        name="category"
-                        id="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Model
-                      </label>
-                      <input
-                        type="text"
-                        name="model"
-                        id="model"
-                        value={formData.model}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Tags
-                      </label>
-                      <input
-                        type="text"
-                        name="tags"
-                        id="tags"
-                        value={formData.tags}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditDialogOpen(false)}
-                      className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </form>
+        </div>
+        {/* Edit Dialog */}
+        {isEditDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Prompt</h2>
+                <button
+                  onClick={() => setIsEditDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            </div>
-          )}
-          {/* Add Image Dialog */}
-          {isAddImageDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Image</h2>
-                  <button
-                    onClick={() => setIsAddImageDialogOpen(false)}
-                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      id="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Price
+                    </label>
+                    <input
+                      type="number"
+                      name="price"
+                      id="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      id="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Content
+                    </label>
+                    <textarea
+                      name="content"
+                      id="content"
+                      value={formData.content}
+                      onChange={handleInputChange}
+                      placeholder='⚠️For security purposes, the actual content is not shown here, you can still update your prompt... ⚠️'
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 bg-gray-200 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      name="category"
+                      id="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Model
+                    </label>
+                    <input
+                      type="text"
+                      name="model"
+                      id="model"
+                      value={formData.model}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tags
+                    </label>
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      value={formData.tags}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
                 </div>
-                <form onSubmit={handleAddImage}>
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Upload Image
-                      </label>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        name="image"
-                        id="image"
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddImageDialogOpen(false)}
-                      className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    >
-                      Add Image
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-          {/* Visibility Dialog */}
-          {isVisibilityDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Update Visibility</h2>
-                  <button
-                    onClick={() => setIsVisibilityDialogOpen(false)}
-                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <form onSubmit={handleVisibilityChange}>
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Visibility
-                      </label>
-                      <select
-                        name="visibility"
-                        id="visibility"
-                        value={formData.visibility}
-                        onChange={handleInputChange}
-                        className="mt-1 p-2 overflow-scroll block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      >
-                        <option value="Public">Public</option>
-                        <option value="Private">Private</option>
-                        <option value="Draft">Draft</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setIsVisibilityDialogOpen(false)}
-                      className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 cursor-pointer border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    >
-                      Update
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-          {/* Delete Image Dialog */}
-          {isDeleteImageDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Delete Image</h2>
-                  <button
-                    onClick={() => setIsDeleteImageDialogOpen(false)}
-                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Are you sure you want to delete this image?</p>
                 <div className="mt-6 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setIsDeleteImageDialogOpen(false)}
+                    onClick={() => setIsEditDialogOpen(false)}
                     className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleDeleteImage}
-                    className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    type="submit"
+                    className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                   >
-                    Delete
+                    Save
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
-          )}
-          {/* Share Dialog */}
-          {isShareDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Share Prompt</h2>
-                  <button
-                    onClick={() => setIsShareDialogOpen(false)}
-                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+          </div>
+        )}
+        {/* Add Image Dialog */}
+        {isAddImageDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Image</h2>
+                <button
+                  onClick={() => setIsAddImageDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleAddImage}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Share Link
+                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Upload Image
                     </label>
-                    <div className="mt-1 flex rounded-md shadow-sm">
-                      <input
-                        type="text"
-                        value={window.location.href}
-                        readOnly
-                        className="flex-1 p-2 block w-full rounded-l-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                      />
-                      <button
-                        onClick={handleCopyLink}
-                        className="px-4 py-2 inline-flex items-center justify-center rounded-r-md border border-l-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </button>
-                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      name="image"
+                      id="image"
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
                   </div>
-                  <div className="flex justify-center space-x-4">
-                    <button
-                      onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
-                      className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddImageDialogOpen(false)}
+                    className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    Add Image
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Visibility Dialog */}
+        {isVisibilityDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Update Visibility</h2>
+                <button
+                  onClick={() => setIsVisibilityDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleVisibilityChange}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Visibility
+                    </label>
+                    <select
+                      name="visibility"
+                      id="visibility"
+                      value={formData.visibility}
+                      onChange={handleInputChange}
+                      className="mt-1 p-2 overflow-scroll block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     >
-                      <Facebook className="w-6 h-6" />
-                    </button>
+                      <option value="Public">Public</option>
+                      <option value="Private">Private</option>
+                      <option value="Draft">Draft</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsVisibilityDialogOpen(false)}
+                    className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 cursor-pointer border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    Update
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Delete Image Dialog */}
+        {isDeleteImageDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Delete Image</h2>
+                <button
+                  onClick={() => setIsDeleteImageDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Are you sure you want to delete this image?</p>
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteImageDialogOpen(false)}
+                  className="mr-3 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteImage}
+                  className="px-4 cursor-pointer py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Share Dialog */}
+        {isShareDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Share Prompt</h2>
+                <button
+                  onClick={() => setIsShareDialogOpen(false)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Share Link
+                  </label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      value={window.location.href}
+                      readOnly
+                      className="flex-1 p-2 block w-full rounded-l-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    />
                     <button
-                      onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`, '_blank')}
-                      className="p-2 rounded-full bg-blue-400 text-white hover:bg-blue-500"
+                      onClick={handleCopyLink}
+                      className="px-4 py-2 inline-flex items-center justify-center rounded-r-md border border-l-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
                     >
-                      <Twitter className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}`, '_blank')}
-                      className="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800"
-                    >
-                      <Linkedin className="w-6 h-6" />
+                      <Copy className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <Facebook className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-400 text-white hover:bg-blue-500"
+                  >
+                    <Twitter className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800"
+                  >
+                    <Linkedin className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </NavigationLayout>
     )
   );
