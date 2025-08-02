@@ -70,6 +70,11 @@ axiosInstance.interceptors.response.use(
 
           resolve(axiosInstance(originalRequest));
         } catch (err) {
+          localStorage.clear();
+          Cookies.remove("accessToken");
+          Cookies.remove("refreshToken");
+          window.alert("Please Log In again..");
+          window.location.href = import.meta.env.VITE_LOGIN_URL as string;
           reject(err);
         } finally {
           isRefreshing = false;

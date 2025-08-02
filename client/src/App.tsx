@@ -4,7 +4,6 @@ import './App.css';
 import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
 import CreatePrompt from './pages/prompt/CreatePrompt';
-import PurchaseHistory from './pages/user/PurchaseHistory';
 import LikedPrompts from './pages/prompt/LikedPrompts';
 
 // Lazy imports
@@ -22,7 +21,7 @@ const Explore = lazy(() => import("./pages/prompt/Explore"));
 const Favourites = lazy(() => import("./pages/user/Favourites"));
 const MyPrompts = lazy(() => import("./pages/prompt/MyPrompts"));
 const ViewPrompt = lazy(() => import("./pages/prompt/ViewPrompt"));
-const PurhcaseHistory = lazy(() => import("./pages/user/PurchaseHistory"));
+const PurchaseHistory = lazy(() => import("./pages/user/PurchaseHistory"));
 const BookmarkedPrompts = lazy(() => import("./pages/prompt/BookmarkedPrompts"));
 
 const App: React.FC = () => {

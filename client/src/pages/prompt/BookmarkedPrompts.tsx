@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Bookmark, Filter, Search, Eye, Star, User, Clock, X, MapPin, Building } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useDispatch } from 'react-redux';
-import { fetchMyBookmarksThunk, toggleBookmarkThunk } from '../../features/prompts/favouritesSlice'; // You'll need to create this action
+import { fetchMyBookmarksThunk, toggleBookmarkThunk } from '../../features/prompts/favouritesSlice'; 
 import type { AppDispatch } from '../../store';
 
 const GridBackground = () => (
@@ -30,7 +30,7 @@ const BookmarkedPrompts = () => {
   useEffect(() => {
     async function fetchBookmarkedPromptsData() {
       try {
-        const res = await dispatch(getMyBookmarkedPromptsThunk({ page: currentPage, limit: itemsPerPage }));
+        const res = await dispatch(fetchMyBookmarksThunk({ page: currentPage, limit: itemsPerPage }));
         console.log("Res : ", res);
         if (currentPage === 1) {
           setBookmarkedPrompts(res?.payload?.data?.bookmarkedPrompts || []);

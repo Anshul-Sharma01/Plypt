@@ -72,7 +72,19 @@ const toggleBookmarkController = asyncHandler(async(req, res) => {
 const getUserBookmarksController = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
-    const userBookmarks = await Bookmark.find({ user: userId }).populate("prompt"); 
+    let userBookmarks = await Bookmark.find({ user: userId })
+    .populate({
+        path : "prompt",
+        populate : {
+            path : "craftor",
+            populate : {
+                path : "user",
+                select : "name avatar"
+            }
+        }
+    });
+
+    userBookmarks = userBookmarks.map(e => e?.prompt);
     const bookmarkCount = userBookmarks.length;
 
     return res.status(200).json(
@@ -80,7 +92,7 @@ const getUserBookmarksController = asyncHandler(async (req, res) => {
             200,
             {
                 bookmarks: bookmarkCount,
-                userBookmarks
+                bookmarkedPrompts : userBookmarks
             },
             bookmarkCount === 0 ? "No Bookmarked Prompts Yet" : "Fetched bookmarks successfully"
         )
