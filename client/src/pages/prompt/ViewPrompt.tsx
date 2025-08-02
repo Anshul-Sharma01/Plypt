@@ -63,8 +63,7 @@ interface Prompt {
 
 const GridBackground = () => (
   <div className="fixed inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none z-0">
-    <div
-      className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
+    <div className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_rgb(0_0_0)_2px,_transparent_0)] dark:bg-[radial-gradient(circle_at_2px_2px,_rgb(255_255_255)_2px,_transparent_0)]"
       style={{ backgroundSize: '40px 40px' }}
     ></div>
   </div>
@@ -245,14 +244,17 @@ const handleLikedfunctionality = async () => {
   await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
   setIsLiked(!isLiked);
 };
-const handleBookmarkFunctionality = async() => {
-  const updatedBookmarkedPrompts = isBookmarked ? 
-  userData?.bookmarkedPrompts.filter((ele : string) => ele !== prompt?._id?.toString())
-  : [...userData?.bookmarkedPrompts, prompt?._id?.toString()];
 
-  await dispatch(toggleBookmarkThunk({ promptId : prompt?._id }));
+const handleBookmarkFunctionality = async () => {
+  const bookmarkedPrompts = userData?.bookmarkedPrompts || [];
+  const updatedBookmarkedPrompts = isBookmarked
+    ? bookmarkedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
+    : [...bookmarkedPrompts, prompt?._id?.toString()];
+
+  await dispatch(toggleBookmarkThunk({ promptId: prompt?._id }));
   setIsBookmarked(!isBookmarked);
-}
+};
+
 
 
   const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
