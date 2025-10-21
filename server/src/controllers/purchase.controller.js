@@ -37,7 +37,7 @@ const purchasePromptController = asyncHandler(async (req, res) => {
     }
 
     if(prompt.isBiddable){
-        const winnerId = await redisClient.get(`winner : ${promptId}`);
+        const winnerId = await redisClient.get(`winner:${promptId}`);
         if(!winnerId || winnerId !== userId.toString()){
             throw new ApiError(403, "Only the auction winner can purchase this prompt");
         }

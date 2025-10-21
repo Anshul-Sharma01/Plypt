@@ -12,7 +12,6 @@ const cookieOptions = {
 }
 
 
-// Start Google OAuth
 router.get('/google',
   passport.authenticate('google', { 
     scope: ['profile', 'email'],

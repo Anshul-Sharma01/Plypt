@@ -138,6 +138,17 @@ export const deleteImageThunk = createAsyncThunk("prompt/delete-image", async(da
     }
 })
 
+export const deletePromptThunk = createAsyncThunk("prompt/delete-prompt", async(promptId : string, { rejectWithValue }) => {
+    try{
+        const promise = axiosInstance.delete(`prompt/delete/${promptId}`);
+        toastHandler(promise, "Deleting prompt...", "Successfully deleted prompt");
+        const res = await promise;
+        return { ...res.data, promptId };
+    }catch(err : any){
+        return rejectWithValue(err?.response?.data?.message || "Error occurred while deleting prompt");
+    }
+})
+
 const promptSlice = createSlice({
     name : "prompt",
     initialState,
@@ -197,6 +208,12 @@ const promptSlice = createSlice({
                 toast.error(action.payload as string);
             })
             .addCase(deleteImagesThunk.rejected, (_, action) => {
+                toast.error(action.payload as string);
+            })
+            .addCase(deletePromptThunk.fulfilled, (state, action) => {
+                state.myPrompts = state.myPrompts.filter(prompt => prompt._id !== action.payload.promptId);
+            })
+            .addCase(deletePromptThunk.rejected, (_, action) => {
                 toast.error(action.payload as string);
             })
     }

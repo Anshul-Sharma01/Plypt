@@ -26,7 +26,7 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({ isOpen, onClose
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Match this duration with the CSS transition duration
+    setTimeout(onClose, 300);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

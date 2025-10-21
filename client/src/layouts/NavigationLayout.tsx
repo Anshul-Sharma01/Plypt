@@ -14,7 +14,6 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const { isLoggedIn, userData } = useSelector((state: RootState) => state?.user);
-  const craftorData = useSelector((state) => state?.craftor?.craftorData) || null;
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -416,6 +415,17 @@ const NavigationLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   >
                     <FileClock strokeWidth={2} className='w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400'/>
                     <span>Purchase History</span>
+                  </Link>
+
+                  <Link
+                    to="/help"
+                    onClick={closeMobileMenu}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 group"
+                  >
+                    <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-medium">Help & Support</span>
                   </Link>
 
                   <button

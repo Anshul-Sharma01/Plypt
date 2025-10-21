@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, Eye, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, Star, Eye, ArrowRight, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
-import { getAllPromptsThunk, getMyPromptsThunk } from '../../features/prompts/promptSlice';
+import { getMyPromptsThunk, deletePromptThunk } from '../../features/prompts/promptSlice';
 import { Link } from 'react-router-dom';
 
 const ExplorePage = () => {
@@ -11,7 +11,6 @@ const ExplorePage = () => {
   const {
     myPrompts: backendPrompts,
     loading,
-    error,
   } = useSelector((state: any) => state.prompt);
 
   const craftorData = useSelector((state : any) => state?.craftor);
@@ -89,6 +88,20 @@ const ExplorePage = () => {
 
   const totalPages = Math.ceil(filteredPrompts.length / itemsPerPage);
 
+  const handleDeletePrompt = async (promptId: string, promptTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${promptTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await dispatch(deletePromptThunk(promptId));
+      // Remove the deleted prompt from local state
+      setAllPrompts(prev => prev.filter(prompt => prompt._id !== promptId));
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+    }
+  };
+
   const FloatingOrbs = () => (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
       <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/10 dark:bg-purple-500/10 rounded-full blur-xl animate-pulse"></div>
@@ -154,12 +167,23 @@ const ExplorePage = () => {
 
   const PromptCard = ({ prompt }: { prompt: Prompt }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700">
-      <div className="relative h-12 flex items-center px-6 pt-6">
-        {prompt.isBiddable && (
-          <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
-            Live Auction
-          </span>
-        )}
+      <div className="relative h-12 flex items-center justify-between px-6 pt-6">
+        <div>
+          {prompt.isBiddable && (
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+              Live Auction
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleDeletePrompt(prompt._id, prompt.title)}
+            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+            title="Delete prompt"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div className="p-6 pt-2">
         <div className="flex flex-wrap gap-2 mb-3">

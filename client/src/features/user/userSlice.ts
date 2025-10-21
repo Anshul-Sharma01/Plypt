@@ -5,8 +5,11 @@ import { toastHandler } from '../../helpers/toastHandler';
 import { toggleLikeThunk } from '../prompts/likeSlice';
 import { toggleBookmarkThunk } from '../prompts/favouritesSlice';
 
-const updateLocalStorage = (user: any) => {
+const updateLocalStorage = (user: any, accessToken? : any) => {
   localStorage.setItem('userData', JSON.stringify(user));
+  if (accessToken !== undefined) {
+    localStorage.setItem("accessToken", accessToken);
+  }
   localStorage.setItem('isLoggedIn', 'true');
   localStorage.setItem('userRole', user?.role);
 };
@@ -20,6 +23,7 @@ const clearAuthData = (state: UserState) => {
 
 interface UserState {
   isLoggedIn: boolean;
+  accessToken : string;
   userRole: string;
   userData: any;
   loading: boolean;
@@ -30,6 +34,7 @@ const initialState: UserState = {
   isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
   userRole: localStorage.getItem('userRole') || '',
   userData: JSON.parse(localStorage.getItem('userData') || '{}'),
+  accessToken : localStorage.getItem("accessToken") || "",
   loading: false,
   error: null,
 };
@@ -112,9 +117,10 @@ const userSlice = createSlice({
         state.loading = false;
         if (action.payload?.data) {
           const { user, accessToken, refreshToken } = action.payload.data;
-          updateLocalStorage(user);
+          updateLocalStorage(user, accessToken);
           if (accessToken) localStorage.setItem('accessToken', accessToken);
           if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+          state.accessToken = accessToken;
           state.isLoggedIn = true;
           state.userData = user;
           state.userRole = user.role;
@@ -133,8 +139,8 @@ const userSlice = createSlice({
       .addCase(authenticateUser.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
         if (action.payload?.data) {
-          const { user } = action.payload.data;
-          updateLocalStorage(user);
+          const { user, accessToken } = action?.payload?.data;
+          updateLocalStorage(user, accessToken);
           state.isLoggedIn = true;
           state.userData = user;
           state.userRole = user.role;

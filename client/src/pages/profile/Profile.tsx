@@ -40,7 +40,6 @@ const Profile: React.FC = () => {
   const [isCraftorModalOpen, setIsCraftorModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [craftorData, setCraftorData] = useState<CraftorData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -61,15 +60,9 @@ const Profile: React.FC = () => {
     setIsUpdateModalOpen(false);
   };
 
-  const craftorDataFromRedux = useSelector((state: RootState) => state?.craftor?.craftorData);
+  const craftorData = useSelector((state: RootState) => state?.craftor?.craftorData);
+  console.log("Craftor data : ", craftorData);
 
-  useEffect(() => {
-    if (userData?.isCraftor) {
-      setCraftorData(craftorDataFromRedux);
-    } else {
-      setCraftorData(null);
-    }
-  }, [userData, craftorDataFromRedux]);
 
   const handleUpdateProfile = async (updatedData: { name: string | null; username: string | null; bio: string | null }) => {
     const formData = new FormData();
@@ -194,13 +187,7 @@ const Profile: React.FC = () => {
                       Activate Craftor Privileges
                     </button>
                   ) : (
-                    <button onClick={() => {
-                      if (craftorData?.slug) {
-                        navigate(`/craftor-profile/${craftorData.slug}`);
-                      } else {
-                        toast.error("Craftor data not loaded yet");
-                      }
-                    }} className="cursor-pointer flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+                    <button onClick={() => {navigate(`/craftor-profile/${craftorData?.slug}`);}} className="cursor-pointer flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white rounded-full font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
                       <User className="w-5 h-5 mr-2" />
                       Visit Craftor Account
                     </button>

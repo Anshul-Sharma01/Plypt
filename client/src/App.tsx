@@ -4,6 +4,7 @@ import './App.css';
 import { Toaster } from 'react-hot-toast';
 import RequireAuth from './helpers/RequireAuth';
 import CreatePrompt from './pages/prompt/CreatePrompt';
+import { SocketProvider } from './components/providers/SocketProvider';
 
 // Lazy imports
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -22,41 +23,46 @@ const MyPrompts = lazy(() => import("./pages/prompt/MyPrompts"));
 const ViewPrompt = lazy(() => import("./pages/prompt/ViewPrompt"));
 const PurchaseHistory = lazy(() => import("./pages/user/PurchaseHistory"));
 const BookmarkedPrompts = lazy(() => import("./pages/prompt/BookmarkedPrompts"));
+const HelpSupport = lazy(() => import("./pages/HelpSupport"));
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Toaster position="top-center" />
-      <Suspense fallback={<MysticalLoader />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+    <SocketProvider>
+      <Router>
+        <Toaster position="top-center" />
+        <Suspense fallback={<MysticalLoader />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
 
-          <Route path='/explore' element={<Explore/>}></Route>
-          <Route path='/view/:slug' element={<ViewPrompt/>}></Route>
+            <Route path='/explore' element={<Explore/>}></Route>
+            <Route path='/view/:slug' element={<ViewPrompt/>}></Route>
+            <Route path='/help' element={<HelpSupport/>}></Route>
 
 
-          <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
-            <Route path="/profile" element={<Profile />} />
-            <Route path='/favourites' element={<Favourites/>}></Route>
-            <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>            <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
-          </Route>
+            <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
+              <Route path="/profile" element={<Profile />} />
+              <Route path='/favourites' element={<Favourites/>}></Route>
+              <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>            
+              <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
+            </Route>
 
-          <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
-            <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
-            <Route path="/craftor/billing" element={<Billing />} />
-            <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
-            <Route path='/prompts/my' element={<MyPrompts/>} ></Route>
-          </Route>
+            <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
+              <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
+              <Route path="/craftor/billing" element={<Billing />} />
+              <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
+              <Route path='/prompts/my' element={<MyPrompts/>} ></Route>
+            </Route>
 
-          
-          <Route path='/denied' element={<Denied/>}></Route>
-          <Route path='*' element={<NotFoundPage/>}></Route>
-        </Routes>
-      </Suspense>
-    </Router>
+            
+            <Route path='/denied' element={<Denied/>}></Route>
+            <Route path='*' element={<NotFoundPage/>}></Route>
+          </Routes>
+        </Suspense>
+      </Router>
+    </SocketProvider>
   );
 };
 

@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './features/user/userSlice';
 import craftorReducer from "./features/craftor/craftorSlice";
 import promptReducer from './features/prompts/promptSlice';
+import realtimeReducer from './features/realtime/realtimeSlice';
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
     prompt: promptReducer,
-    craftor : craftorReducer
+    craftor: craftorReducer,
+    realtime: realtimeReducer
   },
 });
 

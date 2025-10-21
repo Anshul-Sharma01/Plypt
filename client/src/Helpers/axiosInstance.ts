@@ -16,6 +16,14 @@ axiosInstance.interceptors.request.use(
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
+    
+    // Log the full URL being requested
+    console.log('Axios Request:', {
+      method: config.method?.toUpperCase(),
+      url: `${config.baseURL}${config.url}`,
+      fullUrl: `${config.baseURL}${config.url}`
+    });
+    
     return config;
   },
   (error: AxiosError) => {

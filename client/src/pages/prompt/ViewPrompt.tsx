@@ -14,6 +14,7 @@ import { handlePayment } from "../../helpers/handlePayment";
 import { toggleLikeThunk } from '../../features/prompts/likeSlice';
 import { toggleBookmarkThunk } from '../../features/prompts/favouritesSlice';
 import Comments from '../../components/prompt/Comments';
+import RealTimeFeatures from '../../components/prompt/RealTimeFeatures';
 
 interface Craftor {
   _id: string;
@@ -563,6 +564,15 @@ const ViewPrompt = () => {
                 </div>
               </div>
             </div>
+            {/* Real-time Features */}
+            <div className="mt-8">
+              <RealTimeFeatures
+                promptId={prompt?._id}
+                initialBid={prompt?.currentBid || 0}
+                isBiddable={prompt?.isBiddable || false}
+              />
+            </div>
+            
             {/* Comments Section */}
             <div className="mt-8">
               <Comments promptId={prompt?._id} totalComments={prompt?.reviews?.length} />
