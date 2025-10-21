@@ -7,8 +7,16 @@ export const registerChatHandlers = (io, socket) => {
         console.log(`Socket ${socket.id} joined chat room : ${roomId}`);
     })
 
-    socket.on("sendMessage", async({ roomId, senderId, content }) => {
+    socket.on("sendMessage", async({ roomId, content }) => {
         try{
+            // Check if user is authenticated
+            if (!socket.user) {
+                socket.emit("error", "Please log in to send messages");
+                return;
+            }
+
+            const senderId = socket.user._id;
+
             const message = new Message({ roomId, sender : senderId, content });
             await message.save();
 

@@ -47,7 +47,7 @@ const checkExpiredAuctions = async () => {
             
             if (startTime) {
                 const startDate = new Date(startTime);
-                const endTime = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // 2 hours
+                const endTime = new Date(startDate.getTime() + (20 * 60 * 1000)); // 20 minutes
                 const now = new Date();
                 
                 if (now >= endTime) {
@@ -77,7 +77,7 @@ const startPeriodicAuctionCheck = () => {
                 
                 if (startTime && !auctionEnded) {
                     const startDate = new Date(startTime);
-                    const endTime = new Date(startDate.getTime() + (2 * 60 * 60 * 1000));
+                    const endTime = new Date(startDate.getTime() + (20 * 60 * 1000)); // 20 minutes
                     const now = new Date();
                     
                     if (now >= endTime) {

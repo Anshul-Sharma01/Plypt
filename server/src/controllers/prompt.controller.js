@@ -24,7 +24,7 @@ const createPromptController = asyncHandler(async (req, res) => {
     if (slugExists) {
         throw new ApiError(400, "Prompt Title already exists, please try some different title");
     }
-    console.log("It was here !!");
+    // console.log("It was here !!");
 
 
     const images = [];
@@ -67,6 +67,10 @@ const createPromptController = asyncHandler(async (req, res) => {
     craftor.prompts.push(prompt);
     if (craftor.tier == 'Basic' && craftor.prompts.length >= 5) {
         craftor.tier = 'Basic-Advanced';
+    }else if(craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length >= 10){
+        craftor.tier = 'Pro';
+    }else if(craftor.tier == 'Pro' && craftor?.prompts?.length >= 20){
+        craftor.tier = 'Elite';
     }
 
     await craftor.save();
@@ -528,6 +532,14 @@ const deletePromptController = asyncHandler(async (req, res) => {
     }
 
     await Prompt.findByIdAndDelete(promptId);
+    
+    if (craftor.tier == 'Elite' && craftor.prompts.length < 20) {
+        craftor.tier = 'Pro';
+    }else if(craftor.tier == 'Pro' && craftor?.prompts?.length < 10){
+        craftor.tier = 'Basic-Advanced';
+    }else if(craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length < 5){
+        craftor.tier = 'Basic';
+    }
 
     return res.status(200)
         .json(

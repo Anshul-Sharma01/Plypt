@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Star, Eye, Heart, Share2, Calendar, Tag, User, ShoppingCart, Gavel, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin, LucideArrowDownRightFromSquare, Bookmark } from 'lucide-react';
+import { Star, Eye, Heart, Share2, Calendar, Tag, ShoppingCart, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin, Bookmark } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addImageThunk, changeVisibilityThunk, deleteImageThunk, getPromptBySlugThunk, updatePromptDetailsThunk } from '../../features/prompts/promptSlice';
-import MysticalLoader from '../../utils/MysticalLoader';
+
 import toast from 'react-hot-toast';
 import SkeletonLoader from './SkeletonLoader';
 import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
@@ -179,10 +179,6 @@ const ViewPrompt = () => {
     console.log("Purchase order initiated : ", res);
   };
 
-  const handlePlaceBid = () => {
-    console.log('Placing bid on prompt:', prompt?._id);
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -204,7 +200,9 @@ const ViewPrompt = () => {
       console.log('New image uploaded:', fileInputRef.current.files[0].name);
     }
     const imgData = new FormData();
-    imgData.append("image", fileInputRef?.current?.files[0]);
+    if (fileInputRef?.current?.files?.[0]) {
+      imgData.append("image", fileInputRef.current.files[0]);
+    }
     const res = await dispatch(addImageThunk({ promptId: prompt?._id, image: imgData }));
     setPrompt(res?.payload?.data);
     setIsAddImageDialogOpen(false);
@@ -232,18 +230,11 @@ const ViewPrompt = () => {
   };
 
   const handleLikedfunctionality = async () => {
-    const updatedLikedPrompts = isLiked
-      ? userData?.likedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
-      : [...userData?.likedPrompts, prompt?._id?.toString()];
     await dispatch(toggleLikeThunk({ promptId: prompt?._id }));
     setIsLiked(!isLiked);
   };
 
   const handleBookmarkFunctionality = async () => {
-    const bookmarkedPrompts = userData?.bookmarkedPrompts || [];
-    const updatedBookmarkedPrompts = isBookmarked
-      ? bookmarkedPrompts.filter((ele: string) => ele !== prompt?._id?.toString())
-      : [...bookmarkedPrompts, prompt?._id?.toString()];
     await dispatch(toggleBookmarkThunk({ promptId: prompt?._id }));
     setIsBookmarked(!isBookmarked);
   };
@@ -265,11 +256,11 @@ const ViewPrompt = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex flex-wrap gap-2">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(prompt?.category)}`}>
-                        {prompt?.category}
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(prompt?.category || 'Other')}`}>
+                        {prompt?.category || 'Other'}
                       </span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getModelColor(prompt?.model)}`}>
-                        {prompt?.model}
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getModelColor(prompt?.model || 'Other')}`}>
+                        {prompt?.model || 'Other'}
                       </span>
                     </div>
                     {isCraftor && (
@@ -297,31 +288,29 @@ const ViewPrompt = () => {
                       <div className="flex items-center gap-2">
                         <Star className="w-5 h-5 text-yellow-500 fill-current" />
                         <span className="font-semibold text-gray-900 dark:text-white">{prompt?.rating}</span>
-                        <span className="text-gray-500 dark:text-gray-400">({prompt?.reviews.length} reviews)</span>
+                        <span className="text-gray-500 dark:text-gray-400">({prompt?.reviews?.length || 0} reviews)</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                         <Calendar className="w-4 h-4" />
-                        <span className="text-sm">{formatDate(prompt?.createdAt)}</span>
+                        <span className="text-sm">{prompt?.createdAt ? formatDate(prompt.createdAt) : 'N/A'}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleLikedfunctionality}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isLiked
-                            ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
+                        className={`p-2 rounded-lg transition-colors ${isLiked
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
                       >
                         <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
                       </button>
                       <button
                         onClick={handleBookmarkFunctionality}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isBookmarked
-                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
+                        className={`p-2 rounded-lg transition-colors ${isBookmarked
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
                       >
                         <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
                       </button>
@@ -349,7 +338,7 @@ const ViewPrompt = () => {
                   )}
                 </div>
                 {/* Images */}
-                {prompt?.pictures?.length > 0 && (
+                {prompt?.pictures && prompt.pictures.length > 0 && (
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Preview Images</h2>
@@ -372,7 +361,7 @@ const ViewPrompt = () => {
                         {isCraftor && (
                           <button
                             onClick={() => {
-                              setImageToDelete(prompt.pictures[currentImageIndex].public_id);
+                              setImageToDelete(prompt?.pictures?.[currentImageIndex]?.public_id || '');
                               setIsDeleteImageDialogOpen(true);
                             }}
                             className="absolute top-2 cursor-pointer right-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -381,17 +370,16 @@ const ViewPrompt = () => {
                           </button>
                         )}
                       </div>
-                      {prompt?.pictures.length > 1 && (
+                      {prompt?.pictures && prompt.pictures.length > 1 && (
                         <div className="flex gap-2 overflow-x-auto">
                           {prompt?.pictures.map((picture, index) => (
                             <button
                               key={picture.public_id}
                               onClick={() => setCurrentImageIndex(index)}
-                              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                                currentImageIndex === index
-                                  ? 'border-purple-500'
-                                  : 'border-gray-200 dark:border-gray-600'
-                              }`}
+                              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${currentImageIndex === index
+                                ? 'border-purple-500'
+                                : 'border-gray-200 dark:border-gray-600'
+                                }`}
                             >
                               <img
                                 src={picture.secure_url}
@@ -440,10 +428,10 @@ const ViewPrompt = () => {
                   </div>
                 )}
                 {/* Reviews */}
-                {prompt?.reviews.length > 0 && (
+                {prompt?.reviews && prompt.reviews.length > 0 && (
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                      Reviews ({prompt?.reviews.length})
+                      Reviews ({prompt?.reviews?.length || 0})
                     </h2>
                     <div className="space-y-4">
                       {prompt?.reviews.map((review) => (
@@ -461,9 +449,8 @@ const ViewPrompt = () => {
                                   {Array.from({ length: 5 }, (_, i) => (
                                     <Star
                                       key={i}
-                                      className={`w-4 h-4 ${
-                                        i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'
-                                      }`}
+                                      className={`w-4 h-4 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'
+                                        }`}
                                     />
                                   ))}
                                 </div>
@@ -491,7 +478,7 @@ const ViewPrompt = () => {
                         </p>
                         <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                           <Clock className="w-4 h-4" />
-                          <span>Auction ends in 2d 15h</span>
+                          <span>Auction ends in 20m</span>
                         </div>
                       </div>
                     ) : (
@@ -504,13 +491,10 @@ const ViewPrompt = () => {
                   <div className="space-y-3">
                     {!isCraftor && (
                       prompt?.isBiddable ? (
-                        <button
-                          onClick={handlePlaceBid}
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
-                        >
-                          <Gavel className="w-5 h-5" />
-                          Place Bid
-                        </button>
+                        // For biddable prompts, the purchase logic is handled in RealTimeFeatures
+                        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                          Bidding is handled in the auction section below
+                        </div>
                       ) : alreadyPurchased ? (
                         <button
                           disabled
@@ -554,28 +538,32 @@ const ViewPrompt = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500 dark:text-gray-400">Created</span>
-                      <span className="text-gray-900 dark:text-white font-medium">{formatDate(prompt?.createdAt)}</span>
+                      <span className="text-gray-900 dark:text-white font-medium">{prompt?.createdAt ? formatDate(prompt.createdAt) : 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500 dark:text-gray-400">Updated</span>
-                      <span className="text-gray-900 dark:text-white font-medium">{formatDate(prompt?.updatedAt)}</span>
+                      <span className="text-gray-900 dark:text-white font-medium">{prompt?.updatedAt ? formatDate(prompt.updatedAt) : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             {/* Real-time Features */}
-            <div className="mt-8">
-              <RealTimeFeatures
-                promptId={prompt?._id}
-                initialBid={prompt?.currentBid || 0}
-                isBiddable={prompt?.isBiddable || false}
-              />
-            </div>
-            
+            {/* Real-time Features - Only show if prompt exists */}
+            {prompt && (
+              <div className="mt-8">
+                <RealTimeFeatures
+                  promptId={prompt._id}
+                  initialBid={prompt.currentBid || 0}
+                  isBiddable={prompt.isBiddable || false}
+                  promptCraftorId={prompt.craftor?._id}
+                />
+              </div>
+            )}
+
             {/* Comments Section */}
             <div className="mt-8">
-              <Comments promptId={prompt?._id} totalComments={prompt?.reviews?.length} />
+              <Comments promptId={prompt?._id || ''} totalComments={prompt?.reviews?.length || 0} />
             </div>
           </div>
         </div>
