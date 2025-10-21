@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Gavel, Clock, TrendingUp, AlertCircle, RefreshCw, Wifi, WifiOff, ShoppingCart } from 'lucide-react';
+import { Gavel, Clock, TrendingUp, AlertCircle, RefreshCw, Wifi, WifiOff, ShoppingCart, X } from 'lucide-react';
 import { useBidding } from '../../hooks/useBidding';
 import { useSocket } from '../../hooks/useSocket';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../../store';
-import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
+import { initiatePurchaseForPrompt, getPendingPurchase, cancelPendingPurchase } from '../../features/payment/paymentSlice';
 import { handlePayment } from '../../helpers/handlePayment';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -28,9 +28,12 @@ const BiddingSection: React.FC<BiddingSectionProps> = ({
   const userData = useSelector((state: RootState) => state?.user?.userData);
   const isLoggedIn = useSelector((state: RootState) => state?.user?.isLoggedIn);
   const craftorData = useSelector((state: any) => state?.craftor?.craftorData);
+  const pendingPurchase = useSelector((state: any) => state?.payment?.pendingPurchase);
   const { reconnect } = useSocket();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+
 
   const {
     currentBid,
@@ -136,6 +139,13 @@ const BiddingSection: React.FC<BiddingSectionProps> = ({
     return winner;
   }, [winnerId, userData, isAuctionEnded]);
 
+  // Check for pending purchase on component mount
+  useEffect(() => {
+    if (isWinner && isAuctionEnded && isLoggedIn) {
+      dispatch(getPendingPurchase(promptId));
+    }
+  }, [isWinner, isAuctionEnded, isLoggedIn, promptId, dispatch]);
+
   // Handle purchase for auction winner
   const handleWinnerPurchase = async () => {
     if (!isWinner || !isAuctionEnded) {
@@ -150,14 +160,42 @@ const BiddingSection: React.FC<BiddingSectionProps> = ({
         currency: "INR"
       }));
 
-      if (res?.payload?.statusCode === 201) {
+      if (res.type === 'purchase/new-order/fulfilled') {
+        // Success case
         const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
         const receipt = res?.payload?.data?.receipt;
         handlePayment(razorpayOrderId, currentBid, receipt, dispatch, navigate, userData);
+      } else if (res.type === 'purchase/new-order/rejected') {
+        // Check if it's a pending purchase error
+        const payload = res.payload as any;
+        if (payload?.statusCode === 409 && payload?.hasPendingPurchase) {
+          toast('You have a pending purchase for this prompt', { icon: 'ℹ️' });
+          // The pending purchase is already set in the store by the reducer
+        }
       }
     } catch (error) {
       toast.error('Failed to initiate purchase');
       console.error('Purchase error:', error);
+    }
+  };
+
+  // Handle resuming pending purchase
+  const handleResumePendingPurchase = () => {
+    if (pendingPurchase && pendingPurchase.razorpayOrderId) {
+      const razorpayOrderId = pendingPurchase.razorpayOrderId;
+      const receipt = pendingPurchase.transaction?.orderId;
+      handlePayment(razorpayOrderId, currentBid, receipt, dispatch, navigate, userData);
+    }
+  };
+
+  // Handle cancelling pending purchase
+  const handleCancelPendingPurchase = async () => {
+    try {
+      await dispatch(cancelPendingPurchase(promptId));
+      toast.success('Pending purchase cancelled. You can now start a new purchase.');
+    } catch (error) {
+      toast.error('Failed to cancel pending purchase');
+      console.error('Cancel error:', error);
     }
   };
 
@@ -260,14 +298,46 @@ const BiddingSection: React.FC<BiddingSectionProps> = ({
             {isWinner ? (
               <div>
                 <p className="text-green-600 dark:text-green-400 font-medium mb-3">🎉 Congratulations! You won this auction!</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">You can now purchase this prompt at your winning bid price.</p>
-                <button
-                  onClick={handleWinnerPurchase}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  Purchase Now - {formatCurrency(currentBid)}
-                </button>
+                
+                {pendingPurchase ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                      <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium mb-2">
+                        ⚠️ You have a pending purchase for this prompt
+                      </p>
+                      <p className="text-yellow-700 dark:text-yellow-300 text-xs mb-3">
+                        Amount: {formatCurrency(pendingPurchase.amount)} • Status: {pendingPurchase.status}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleResumePendingPurchase}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          Resume Payment
+                        </button>
+                        <button
+                          onClick={handleCancelPendingPurchase}
+                          className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2 px-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel & Restart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">You can now purchase this prompt at your winning bid price.</p>
+                    <button
+                      onClick={handleWinnerPurchase}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      Purchase Now - {formatCurrency(currentBid)}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div>

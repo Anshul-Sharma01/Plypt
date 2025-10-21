@@ -44,10 +44,35 @@ const purchasePromptController = asyncHandler(async (req, res) => {
     }
 
 
-    const alreadyPurchased = await Purchase.findOne({ user: userId, prompt: promptId });
-    if (alreadyPurchased) {
+    // Check if already completed purchase exists
+    const completedPurchase = await Purchase.findOne({ 
+        user: userId, 
+        prompt: promptId, 
+        status: "Completed" 
+    });
+    
+    if (completedPurchase) {
         return res.status(400).json(
             new ApiResponse(400, { alreadyPurchased: true }, "Prompt already purchased")
+        );
+    }
+
+    // Check for pending purchases
+    const pendingPurchase = await Purchase.findOne({ 
+        user: userId, 
+        prompt: promptId, 
+        status: { $in: ["Initiated", "Pending"] }
+    });
+    
+    if (pendingPurchase) {
+        // Populate the transaction data for the pending purchase
+        await pendingPurchase.populate('transaction');
+        
+        return res.status(409).json(
+            new ApiResponse(409, { 
+                hasPendingPurchase: true, 
+                purchase: pendingPurchase 
+            }, "You have a pending purchase for this prompt")
         );
     }
 
@@ -127,6 +152,62 @@ const getUserPurchasedPromptsController = asyncHandler(async (req, res) => {
 });
 
 
+// Get pending purchase for a specific prompt
+const getPendingPurchaseController = asyncHandler(async(req, res) => {
+    const userId = req.user?._id;
+    const { promptId } = req.params;
+
+    if (!isValidObjectId(promptId)) {
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+
+    const pendingPurchase = await Purchase.findOne({ 
+        user: userId, 
+        prompt: promptId, 
+        status: { $in: ["Initiated", "Pending"] }
+    }).populate("transaction");
+
+    if (!pendingPurchase) {
+        return res.status(404).json(
+            new ApiResponse(404, null, "No pending purchase found")
+        );
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, { purchase: pendingPurchase }, "Pending purchase found")
+    );
+});
+
+// Cancel a pending purchase
+const cancelPendingPurchaseController = asyncHandler(async(req, res) => {
+    const userId = req.user?._id;
+    const { promptId } = req.params;
+
+    if (!isValidObjectId(promptId)) {
+        throw new ApiError(400, "Invalid Prompt Id");
+    }
+
+    const pendingPurchase = await Purchase.findOne({ 
+        user: userId, 
+        prompt: promptId, 
+        status: { $in: ["Initiated", "Pending"] }
+    });
+
+    if (!pendingPurchase) {
+        throw new ApiError(404, "No pending purchase found");
+    }
+
+    // Delete the pending purchase and its transaction
+    if (pendingPurchase.transaction) {
+        await Transaction.findByIdAndDelete(pendingPurchase.transaction);
+    }
+    await Purchase.findByIdAndDelete(pendingPurchase._id);
+
+    return res.status(200).json(
+        new ApiResponse(200, null, "Pending purchase cancelled successfully")
+    );
+});
+
 const completePurchaseController = asyncHandler(async(req, res) => {
     const userId = req.user?._id;
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
@@ -193,5 +274,7 @@ const completePurchaseController = asyncHandler(async(req, res) => {
 export {
     purchasePromptController,
     getUserPurchasedPromptsController,
-    completePurchaseController
+    completePurchaseController,
+    getPendingPurchaseController,
+    cancelPendingPurchaseController
 }

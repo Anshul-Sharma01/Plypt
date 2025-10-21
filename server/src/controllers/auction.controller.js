@@ -6,6 +6,12 @@ import { Prompt } from "../models/prompt.model.js";
 import { Bid } from "../models/bid.model.js";
 import redisClient from "../config/redisClient.js";
 import { handleAuctionEnd } from "../socket/bidSocket.js";
+import { Purchase } from "../models/Purchase.model.js";
+import { Transaction } from "../models/transaction.model.js";
+import razorpayService from "../utils/razorpayService.js";
+import { isValidObjectId } from "mongoose";
+
+const generateOrderId = () => `ord_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
 
 const getBidsForPromptController = asyncHandler(async(req, res) => {
     try {
@@ -298,10 +304,58 @@ const clearAuctionDataController = asyncHandler(async(req, res) => {
     }
 });
 
+// Test function to create a pending purchase (for debugging)
+const createTestPendingPurchaseController = asyncHandler(async(req, res) => {
+    try {
+        const { promptId } = req.params;
+        const userId = req.user?._id;
+        
+        if (!isValidObjectId(promptId)) {
+            throw new ApiError(400, "Invalid Prompt Id");
+        }
+
+        const prompt = await Prompt.findById(promptId);
+        if(!prompt){
+            throw new ApiError(404, "Prompt not found");
+        }
+
+        // Create a test pending purchase
+        const receipt = generateOrderId();
+        const amount = prompt.price || 10;
+        const paymentOrder = await razorpayService.createOrder(amount, "INR", receipt);
+
+        const purchase = await Purchase.create({ 
+            user : userId,
+            prompt : promptId,
+            amount,
+            currency: "INR",
+            razorpayOrderId : paymentOrder.id,
+            status: "Initiated"
+        });
+
+        const newTransaction = await Transaction.create({
+            orderId : receipt,
+            razorpayOrderId : paymentOrder.id,
+            isVerified : false
+        });
+
+        purchase.transaction = newTransaction?._id;
+        await purchase.save();
+
+        return res.status(201).json(
+            new ApiResponse(201, { purchase, transaction: newTransaction }, "Test pending purchase created")
+        );
+    } catch (error) {
+        console.error('Error in createTestPendingPurchaseController:', error);
+        throw error;
+    }
+});
+
 export {
     getBidsForPromptController,
     getAuctionStatusController,
     getAuctionHistoryController,
     endAuctionManuallyController,
-    clearAuctionDataController
+    clearAuctionDataController,
+    createTestPendingPurchaseController
 }

@@ -4,7 +4,8 @@ import {
     getBidsForPromptController, 
     getAuctionStatusController,
     getAuctionHistoryController,
-    clearAuctionDataController
+    clearAuctionDataController,
+    createTestPendingPurchaseController
 } from "../controllers/auction.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -41,5 +42,6 @@ router.route("/history/:promptId").get(getAuctionHistoryController);
 router.use(authMiddleware);
 router.route("/end/:promptId").post(endAuctionManuallyController);
 router.route("/clear/:promptId").delete(clearAuctionDataController);
+router.route("/test-pending/:promptId").post(createTestPendingPurchaseController);
 
 export default router; 

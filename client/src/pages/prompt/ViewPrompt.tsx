@@ -9,7 +9,7 @@ import { addImageThunk, changeVisibilityThunk, deleteImageThunk, getPromptBySlug
 
 import toast from 'react-hot-toast';
 import SkeletonLoader from './SkeletonLoader';
-import { initiatePurchaseForPrompt } from '../../features/payment/paymentSlice';
+import { initiatePurchaseForPrompt, getPendingPurchase, cancelPendingPurchase } from '../../features/payment/paymentSlice';
 import { handlePayment } from "../../helpers/handlePayment";
 import { toggleLikeThunk } from '../../features/prompts/likeSlice';
 import { toggleBookmarkThunk } from '../../features/prompts/favouritesSlice';
@@ -107,6 +107,7 @@ const ViewPrompt = () => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -121,6 +122,7 @@ const ViewPrompt = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const userData = useSelector((state: any) => state?.user?.userData);
   const craftorData = useSelector((state: any) => state?.craftor);
+  const pendingPurchase = useSelector((state: any) => state?.payment?.pendingPurchase);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -146,6 +148,8 @@ const ViewPrompt = () => {
     fetchPromptData();
   }, [slug, dispatch]);
 
+
+
   useEffect(() => {
     if (prompt) {
       setFormData({
@@ -162,21 +166,60 @@ const ViewPrompt = () => {
   }, [prompt]);
 
   const alreadyPurchased = prompt?.buyers?.includes(userData?._id);
+  const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
+
+  // Check for pending purchase when prompt loads
+  useEffect(() => {
+    if (prompt && !prompt.isBiddable && userData && !alreadyPurchased) {
+      dispatch(getPendingPurchase(prompt._id));
+    }
+  }, [prompt, userData, alreadyPurchased, dispatch]);
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
   const handleBuyPrompt = async () => {
-    const res = await dispatch(initiatePurchaseForPrompt({
-      promptId: prompt?._id,
-      amt: formData.price,
-      currency: "INR"
-    }));
-    if (res?.payload?.statusCode == 201) {
-      console.log("sent request");
-      const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
-      const receipt = res?.payload?.data?.receipt;
+    try {
+      const res = await dispatch(initiatePurchaseForPrompt({
+        promptId: prompt?._id,
+        amt: formData.price,
+        currency: "INR"
+      }));
+      
+      if (res.type === 'purchase/new-order/fulfilled') {
+        // Success case
+        const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
+        const receipt = res?.payload?.data?.receipt;
+        handlePayment(razorpayOrderId, formData?.price, receipt, dispatch, navigate, userData);
+      } else if (res.type === 'purchase/new-order/rejected') {
+        // Check if it's a pending purchase error
+        const payload = res.payload as any;
+        if (payload?.statusCode === 409 && payload?.hasPendingPurchase) {
+          toast('You have a pending purchase for this prompt', { icon: 'ℹ️' });
+          // The pending purchase is already set in the store by the reducer
+        }
+      }
+    } catch (error) {
+      console.error("Purchase error:", error);
+    }
+  };
+
+  const handleResumePendingPurchase = () => {
+    if (pendingPurchase && pendingPurchase.razorpayOrderId) {
+      const razorpayOrderId = pendingPurchase.razorpayOrderId;
+      const receipt = pendingPurchase.transaction?.orderId;
       handlePayment(razorpayOrderId, formData?.price, receipt, dispatch, navigate, userData);
     }
-    console.log("Purchase order initiated : ", res);
+  };
+
+  const handleCancelPendingPurchase = async () => {
+    if (!prompt?._id) return;
+    
+    try {
+      await dispatch(cancelPendingPurchase(prompt._id));
+      toast.success('Pending purchase cancelled. You can now start a new purchase.');
+    } catch (error) {
+      toast.error('Failed to cancel pending purchase');
+      console.error('Cancel error:', error);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -238,8 +281,6 @@ const ViewPrompt = () => {
     await dispatch(toggleBookmarkThunk({ promptId: prompt?._id }));
     setIsBookmarked(!isBookmarked);
   };
-
-  const isCraftor = prompt?.craftor?._id === craftorData?.craftorData?._id;
 
   return (
     isLoading ? (
@@ -502,6 +543,33 @@ const ViewPrompt = () => {
                         >
                           Already Purchased
                         </button>
+                      ) : pendingPurchase ? (
+                        <div className="space-y-3">
+                          <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                            <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium mb-2">
+                              ⚠️ You have a pending purchase for this prompt
+                            </p>
+                            <p className="text-yellow-700 dark:text-yellow-300 text-xs mb-3">
+                              Amount: ${pendingPurchase.amount} • Status: {pendingPurchase.status}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleResumePendingPurchase}
+                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold"
+                              >
+                                <ShoppingCart className="w-4 h-4" />
+                                Resume Payment
+                              </button>
+                              <button
+                                onClick={handleCancelPendingPurchase}
+                                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2 px-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold"
+                              >
+                                <X className="w-4 h-4" />
+                                Cancel & Restart
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <button
                           onClick={handleBuyPrompt}
