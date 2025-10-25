@@ -7,7 +7,7 @@ import EnableCraftorPrivilegesModal from '../../components/craftor/EnableCraftor
 import UpdateProfileModal from '../../components/profile/UpdateProfileModal';
 import UploadPictureModal from '../../components/profile/UploadPictureModal';
 import { useDispatch } from 'react-redux';
-import { updatePictureThunk, updateProfileThunk } from '../../features/user/userSlice';
+import { logoutUserAccount, updatePictureThunk, updateProfileThunk } from '../../features/user/userSlice';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../../components/craftor/LoadingScreen';
 import { activateCraftorAccount } from '../../features/craftor/craftorSlice';
@@ -94,6 +94,7 @@ const Profile: React.FC = () => {
     console.log("Res : ", res);
   };
 
+
   const handleCraftorActivation = async (paymentDetails: PaymentDetails): Promise<number> => {
     setIsLoading(true);
     let userPaymentDetails: PaymentDetails = {
@@ -107,10 +108,12 @@ const Profile: React.FC = () => {
 
     try {
       const response = await dispatch(activateCraftorAccount(userPaymentDetails));
-      if (response.payload.statusCode === 201) {
-        const craftorData = useSelector((state: RootState) => state?.craftor?.craftorData);
+      console.log("Response of craftor : ", response);
+      if (response?.payload?.statusCode === 201) {
         await new Promise(resolve => setTimeout(resolve, 3000));
-        navigate(`/craftor-profile/${craftorData?.slug}`);
+        await dispatch(logoutUserAccount());
+        toast("Please login again to avail craftor features !!");
+        navigate("/");
       } else {
         console.error("Failed to enable Craftor privileges.");
       }

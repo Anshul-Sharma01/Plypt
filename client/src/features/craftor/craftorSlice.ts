@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/tool
 import axiosInstance from "../../helpers/axiosInstance";
 import toast from "react-hot-toast";
 import { toastHandler } from "../../helpers/toastHandler";
-import { authenticateUser, fetchCurrentUser } from "../user/userSlice";
+import { authenticateUser, fetchCurrentUser, logoutUserAccount } from "../user/userSlice";
 
 const updateLocalStorage = (craftor : any) => {
     localStorage.setItem('craftorData', JSON.stringify(craftor));
@@ -20,11 +20,12 @@ const initialState : CraftorState = {
     error : null
 }
 
-export const activateCraftorAccount = createAsyncThunk("auth/craftor/activate", async(data : any, { rejectWithValue } ) => {
+export const activateCraftorAccount = createAsyncThunk("auth/craftor/activate", async(data : any, { dispatch, rejectWithValue } ) => {
     try{
         // console.log(data);
         const promise = axiosInstance.post("craftor/activate", data);
-        toastHandler(promise, "Activating Craftor Account", "Craftor Account Activated Successfully !");
+        toastHandler(promise, "Activating Craftor Account", "Craftor Account Activated Successfully !!");
+        
         const res = await promise;
         return res.data;
     }catch(err : any){
