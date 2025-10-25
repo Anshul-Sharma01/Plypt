@@ -74,20 +74,20 @@ const createPromptController = asyncHandler(async (req, res) => {
     }
 
     await craftor.save();
-    await fetch(`http://localhost:5000/api/v1/inngest/prompt/creation`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            data: {
-                promptId: prompt._id.toString()
-            }
-        })
-    });
+    // await fetch(`http://localhost:5000/api/v1/inngest/prompt/creation`, {
+    //     method: "POST",
+    //     headers: {
+    //         "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //         data: {
+    //             promptId: prompt._id.toString()
+    //         }
+    //     })
+    // });
 
 
-    console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
+    // console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
 
 
 

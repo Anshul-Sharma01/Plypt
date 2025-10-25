@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addImageThunk, changeVisibilityThunk, deleteImageThunk, getPromptBySlugThunk, updatePromptDetailsThunk } from '../../features/prompts/promptSlice';
-
+import { clearReviews } from '../../features/prompts/reviewSlice';
 import toast from 'react-hot-toast';
 import SkeletonLoader from './SkeletonLoader';
 import { initiatePurchaseForPrompt, getPendingPurchase, cancelPendingPurchase } from '../../features/payment/paymentSlice';
@@ -130,6 +130,7 @@ const ViewPrompt = () => {
   const userData = useSelector((state: any) => state?.user?.userData);
   const craftorData = useSelector((state: any) => state?.craftor);
   const pendingPurchase = useSelector((state: any) => state?.payment?.pendingPurchase);
+  const reviewsFromRedux = useSelector((state: any) => state?.review?.reviews);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -148,6 +149,8 @@ const ViewPrompt = () => {
   useEffect(() => {
     const fetchPromptData = async () => {
       setIsLoading(true);
+      // Clear previous reviews when loading a new prompt
+      dispatch(clearReviews());
       const res = await dispatch(getPromptBySlugThunk({ slug }));
       setPrompt(res?.payload?.data?.prompt);
       setIsLoading(false);
@@ -336,7 +339,7 @@ const ViewPrompt = () => {
                       <div className="flex items-center gap-2">
                         <Star className="w-5 h-5 text-yellow-500 fill-current" />
                         <span className="font-semibold text-gray-900 dark:text-white">{prompt?.rating}</span>
-                        <span className="text-gray-500 dark:text-gray-400">({prompt?.reviews?.length || 0} reviews)</span>
+                        <span className="text-gray-500 dark:text-gray-400">({reviewsFromRedux.length > 0 ? reviewsFromRedux.length : (prompt?.reviews?.length || 0)} reviews)</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                         <Calendar className="w-4 h-4" />
@@ -479,10 +482,9 @@ const ViewPrompt = () => {
                 <Reviews
                   promptId={prompt?._id || ''}
                   craftorId={prompt?.craftor?._id || ''}
-                  reviews={prompt?.reviews || []}
+                  reviews={reviewsFromRedux.length > 0 ? reviewsFromRedux : (prompt?.reviews || [])}
                   canReview={Boolean(alreadyPurchased && !isCraftor)}
                   currentUserId={userData?._id}
-
                   onReviewUpdate={async () => {
                     // Refresh prompt data to get updated reviews and rating
                     const res = await dispatch(getPromptBySlugThunk({ slug }));
@@ -615,7 +617,7 @@ const ViewPrompt = () => {
 
             {/* Comments Section */}
             <div className="mt-8">
-              <Comments promptId={prompt?._id || ''} totalComments={prompt?.reviews?.length || 0} />
+              <Comments promptId={prompt?._id || ''} totalComments={reviewsFromRedux.length > 0 ? reviewsFromRedux.length : (prompt?.reviews?.length || 0)} />
             </div>
           </div>
         </div>
