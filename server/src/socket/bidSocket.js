@@ -3,7 +3,7 @@ import { Prompt } from "../models/prompt.model.js";
 
 import redisClient from "../config/redisClient.js";
 
-const AUCTION_DURATION = 5 * 60; // 20 minutes in seconds
+const AUCTION_DURATION = 2 * 60; // 20 minutes in seconds
 
 // Global timeout manager to prevent duplicate timeouts
 const auctionTimeouts = new Map();
@@ -21,36 +21,36 @@ const syncPromptCurrentBid = async (promptId) => {
     }
 };
 
-export const handleAuctionEnd = async(io, promptId) => {
+export const handleAuctionEnd = async (io, promptId) => {
     try {
         console.log(`Handling auction end for prompt: ${promptId}`);
-        
+
         // Check if auction already ended to prevent duplicate processing
         const alreadyEnded = await redisClient.get(`auctionEnded:${promptId}`);
         if (alreadyEnded === "true") {
             console.log(`Auction already ended for prompt: ${promptId}`);
             return;
         }
-        
+
         // Clear any existing timeout for this auction
         if (auctionTimeouts.has(promptId)) {
             clearTimeout(auctionTimeouts.get(promptId));
             auctionTimeouts.delete(promptId);
         }
-        
+
         // Sync the prompt's currentBid before ending
         await syncPromptCurrentBid(promptId);
-        
-        const latestBid = await Bid.findOne({ prompt : promptId }).sort({ createdAt : -1 });
 
-        if(!latestBid){
+        const latestBid = await Bid.findOne({ prompt: promptId }).sort({ createdAt: -1 });
+
+        if (!latestBid) {
             console.log(`No bids found for prompt: ${promptId}`);
             await redisClient.set(`auctionEnded:${promptId}`, "true");
             // Clear auction start time to prevent restart
             await redisClient.del(`auctionStart:${promptId}`);
             io.to(promptId).emit("auctionEnd", {
                 promptId,
-                message : "No valid bids placed"
+                message: "No valid bids placed"
             });
             return;
         }
@@ -68,8 +68,8 @@ export const handleAuctionEnd = async(io, promptId) => {
 
         io.to(promptId).emit("auctionEnded", {
             promptId,
-            winnerId : user,
-            finalBid : bidAmount,
+            winnerId: user,
+            finalBid: bidAmount,
         });
     } catch (error) {
         console.error(`Error handling auction end for prompt ${promptId}:`, error);
@@ -77,27 +77,27 @@ export const handleAuctionEnd = async(io, promptId) => {
 }
 
 export const registerBidHandlers = (io, socket) => {
-    socket.on("joinAuctionRoom", async({ promptId }) => {
+    socket.on("joinAuctionRoom", async ({ promptId }) => {
         try {
             socket.join(promptId);
             console.log(`Socket ${socket.id} joined auction room ${promptId}`);
-            
+
             // Sync prompt's currentBid when joining
             await syncPromptCurrentBid(promptId);
-            
+
             // Send current auction status when joining
             const prompt = await Prompt.findById(promptId);
-            if(!prompt || !prompt.isBiddable) {
+            if (!prompt || !prompt.isBiddable) {
                 console.log(`Invalid or non-biddable prompt: ${promptId}`);
                 return;
             }
-            
+
             const auctionEnded = await redisClient.get(`auctionEnded:${promptId}`);
             const auctionStartTime = await redisClient.get(`auctionStart:${promptId}`);
-            
+
             console.log(`Auction status for ${promptId}: ended=${auctionEnded}, startTime=${auctionStartTime}`);
-            
-            if(auctionEnded === "true") {
+
+            if (auctionEnded === "true") {
                 const winner = await redisClient.get(`winner:${promptId}`);
                 const finalBid = await redisClient.get(`finalBid:${promptId}`) || prompt.currentBid;
                 console.log(`Auction already ended for ${promptId}, winner: ${winner}`);
@@ -106,15 +106,15 @@ export const registerBidHandlers = (io, socket) => {
                     winnerId: winner,
                     finalBid: parseFloat(finalBid)
                 });
-            } else if(auctionStartTime) {
+            } else if (auctionStartTime) {
                 // Check if auction should have ended
                 const startTime = new Date(auctionStartTime);
                 const endTime = new Date(startTime.getTime() + (AUCTION_DURATION * 1000));
                 const now = new Date();
-                
+
                 console.log(`Auction start: ${startTime}, end: ${endTime}, now: ${now}`);
-                
-                if(now >= endTime) {
+
+                if (now >= endTime) {
                     console.log(`Auction should have ended for ${promptId}, ending now`);
                     await handleAuctionEnd(io, promptId);
                 } else {
@@ -126,7 +126,7 @@ export const registerBidHandlers = (io, socket) => {
                         timeLeft,
                         startTime: auctionStartTime
                     });
-                    
+
                     // Set timeout for when auction should end (only if not already set)
                     if (!auctionTimeouts.has(promptId)) {
                         const timeoutId = setTimeout(() => handleAuctionEnd(io, promptId), timeLeft);
@@ -137,7 +137,7 @@ export const registerBidHandlers = (io, socket) => {
             } else {
                 console.log(`No auction started yet for ${promptId}`);
             }
-        } catch(err) {
+        } catch (err) {
             console.error("Error handling join auction room:", err);
         }
     });
@@ -147,15 +147,15 @@ export const registerBidHandlers = (io, socket) => {
         console.log(`Socket ${socket.id} left auction room ${promptId}`);
     })
 
-    socket.on("placeBid", async({ promptId, bidAmount }) => {
+    socket.on("placeBid", async ({ promptId, bidAmount }) => {
         console.log("PlaceBid event received:", { promptId, bidAmount, socketId: socket.id });
-        
-        try{
+
+        try {
             // Check if user is authenticated via socket
             if (!socket.user) {
                 console.log("User not authenticated via socket");
                 socket.emit("bidRejected", {
-                    message : "Please log in to place a bid"
+                    message: "Please log in to place a bid"
                 });
                 return;
             }
@@ -165,58 +165,58 @@ export const registerBidHandlers = (io, socket) => {
             const userId = socket.user._id;
 
             const prompt = await Prompt.findById(promptId).populate('craftor');
-            if(!prompt) {
+            if (!prompt) {
                 console.log(`Prompt not found: ${promptId}`);
                 return;
             }
 
-            if(!prompt.isBiddable){
+            if (!prompt.isBiddable) {
                 socket.emit("bidRejected", {
-                    message : "This prompt is not open for bidding"
+                    message: "This prompt is not open for bidding"
                 });
                 return;
             }
 
             // Check if user is the craftor (prompt creator)
-            if(prompt.craftor.user.toString() === userId.toString()){
+            if (prompt.craftor.user.toString() === userId.toString()) {
                 socket.emit("bidRejected", {
-                    message : "You cannot bid on your own prompt"
+                    message: "You cannot bid on your own prompt"
                 });
                 return;
             }
 
             const auctionEnded = await redisClient.get(`auctionEnded:${promptId}`);
-            if(auctionEnded === "true"){
-                socket.emit("bidRejected",{
-                    message : "Auction has ended"
+            if (auctionEnded === "true") {
+                socket.emit("bidRejected", {
+                    message: "Auction has ended"
                 });
                 return;
             }
 
-            const lastBid = await Bid.findOne({ prompt : promptId }).sort({ createdAt : -1 });
+            const lastBid = await Bid.findOne({ prompt: promptId }).sort({ createdAt: -1 });
 
-            if(lastBid && lastBid.user.toString() === userId.toString()){
+            if (lastBid && lastBid.user.toString() === userId.toString()) {
                 socket.emit("bidRejected", {
-                    message : "You cannot place consecutive bids"
+                    message: "You cannot place consecutive bids"
                 })
                 return;
             }
 
             const lockKey = `lock:bid:${promptId}`;
             const lockAcquired = await redisClient.set(lockKey, userId.toString(), { NX: true, EX: 5 });
-            if(!lockAcquired){
+            if (!lockAcquired) {
                 socket.emit("bidRejected", {
-                    message : "Another bid is being processed. Please try again "
+                    message: "Another bid is being processed. Please try again "
                 })
                 return;
             }
 
             // For first bid, check against initial price; for subsequent bids, check against current bid
             const minimumBid = prompt.currentBid > 0 ? prompt.currentBid : prompt.price;
-            
-            if(bidAmount <= minimumBid){
+
+            if (bidAmount <= minimumBid) {
                 socket.emit("bidRejected", {
-                    message : `Bid must be higher than ${prompt.currentBid > 0 ? 'current bid' : 'starting price'} ($${minimumBid})`
+                    message: `Bid must be higher than ${prompt.currentBid > 0 ? 'current bid' : 'starting price'} ($${minimumBid})`
                 });
                 return;
             }
@@ -225,9 +225,9 @@ export const registerBidHandlers = (io, socket) => {
             await prompt.save();
 
             const bid = await Bid.create({
-                user : userId,
-                prompt : promptId,
-                bidAmount : bidAmount
+                user: userId,
+                prompt: promptId,
+                bidAmount: bidAmount
             })
 
             console.log(`Bid placed successfully: ${bid._id} for prompt ${promptId} by user ${userId} for $${bidAmount}`);
@@ -235,13 +235,13 @@ export const registerBidHandlers = (io, socket) => {
             // Check if this is the first bid (auction start)
             const auctionStartTime = await redisClient.get(`auctionStart:${promptId}`);
             let isFirstBid = false;
-            
-            if(!auctionStartTime){
+
+            if (!auctionStartTime) {
                 isFirstBid = true;
                 const now = new Date();
                 await redisClient.set(`auctionStart:${promptId}`, now.toISOString());
                 console.log(`Auction started for prompt ${promptId} at ${now}`);
-                
+
                 // Set auction to end in 20 minutes (only if not already set)
                 if (!auctionTimeouts.has(promptId)) {
                     const timeoutId = setTimeout(() => handleAuctionEnd(io, promptId), AUCTION_DURATION * 1000);
@@ -253,17 +253,17 @@ export const registerBidHandlers = (io, socket) => {
             // Emit new bid to all users in the room
             io.to(promptId).emit("newBid", {
                 promptId,
-                bid : {
-                    user : userId,
-                    bidAmount : bidAmount,
-                    amount : bidAmount, // Keep both for compatibility
-                    timeStamp : new Date()
+                bid: {
+                    user: userId,
+                    bidAmount: bidAmount,
+                    amount: bidAmount, // Keep both for compatibility
+                    timeStamp: new Date()
                 },
                 isFirstBid
             })
 
             // If this is the first bid, send auction start status to all users
-            if(isFirstBid) {
+            if (isFirstBid) {
                 const timeLeft = AUCTION_DURATION * 1000; // 20 minutes in milliseconds
                 io.to(promptId).emit("auctionStarted", {
                     promptId,
@@ -274,10 +274,10 @@ export const registerBidHandlers = (io, socket) => {
 
             await redisClient.del(lockKey);
 
-        }catch(err){
+        } catch (err) {
             console.error(`Bid Error : ${err}`);
             socket.emit("bidRejected", {
-                message : "Failed to place bid. Please try again."
+                message: "Failed to place bid. Please try again."
             });
         }
     })

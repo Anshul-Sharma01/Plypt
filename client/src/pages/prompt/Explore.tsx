@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, Eye, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, Star, Eye, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { getAllPromptsThunk } from '../../features/prompts/promptSlice';
 import { Link } from 'react-router-dom';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
+import { useAuctionStatus } from '../../utils/auctionUtils';
 
 const ExplorePage = () => {
   const dispatch: AppDispatch = useDispatch();
   const {
     prompts: backendPrompts,
     loading,
-    error,
   } = useSelector((state: any) => state.prompt);
 
   const [allPrompts, setAllPrompts] = useState<Prompt[]>([]);
@@ -148,15 +149,18 @@ const ExplorePage = () => {
     createdAt: string;
   }
 
-  const PromptCard = ({ prompt }: { prompt: Prompt }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700">
-      <div className="relative h-12 flex items-center px-6 pt-6">
-        {prompt.isBiddable && (
-          <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
-            Live Auction
-          </span>
-        )}
-      </div>
+  const PromptCard = ({ prompt }: { prompt: Prompt }) => {
+    const auctionStatus = useAuctionStatus(prompt._id, prompt.isBiddable);
+    
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700">
+        <div className="relative h-12 flex items-center px-6 pt-6">
+          {auctionStatus.displayText && (
+            <span className={auctionStatus.statusClass}>
+              {auctionStatus.displayText}
+            </span>
+          )}
+        </div>
       <div className="p-6 pt-2">
         <div className="flex flex-wrap gap-2 mb-3">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(prompt.category)}`}>
@@ -190,8 +194,8 @@ const ExplorePage = () => {
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <img
-              src={prompt?.craftor?.avatar }
+            <ImageWithFallback
+              src={prompt?.craftor?.avatar}
               alt={prompt?.craftor?.name}
               className="w-6 h-6 rounded-full"
             />
@@ -222,7 +226,8 @@ const ExplorePage = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const Pagination = () => (
     <div className="flex items-center justify-center gap-4 mt-12">

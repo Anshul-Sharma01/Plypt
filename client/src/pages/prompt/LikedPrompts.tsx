@@ -1,12 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, Filter, Search, Eye, Star } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { getMyLikedPromptsThunk, toggleLikeThunk } from '../../features/prompts/likeSlice';
 import type { AppDispatch } from '../../store';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
+import { getAuctionStatus } from '../../utils/auctionUtils';
+
+interface LikedPrompt {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  model: string;
+  rating: number;
+  price: number;
+  pictures: { secure_url: string }[];
+  craftor: {
+    user: {
+      name: string;
+      avatar: { secure_url: string };
+    };
+  };
+  slug: string;
+  likedAt: string;
+  isBiddable: boolean;
+}
 
 const LikedPrompts = () => {
-  const [likedPrompts, setLikedPrompts] = useState([]);
-  const [filteredPrompts, setFilteredPrompts] = useState([]);
+  const [likedPrompts, setLikedPrompts] = useState<LikedPrompt[]>([]);
+  const [filteredPrompts, setFilteredPrompts] = useState<LikedPrompt[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
@@ -38,8 +60,8 @@ const LikedPrompts = () => {
 
   useEffect(() => {
     let filtered = likedPrompts.filter(prompt => {
-      const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            prompt.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = prompt?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            prompt?.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || prompt.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
@@ -82,7 +104,7 @@ const LikedPrompts = () => {
   const handleUnlike = async (promptId) => {
     try {
       await dispatch(toggleLikeThunk({ promptId }));
-      setLikedPrompts(prev => prev.filter(prompt => prompt._id !== promptId));
+      setLikedPrompts(prev => prev.filter(prompt => prompt?._id !== promptId));
     } catch (error) {
       console.error('Failed to unlike prompt:', error);
     }
@@ -170,8 +192,8 @@ const LikedPrompts = () => {
             <div key={prompt._id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-shrink-0">
-                  <img
-                    src={prompt.pictures[0]?.secure_url || '/api/placeholder/300/200'}
+                  <ImageWithFallback
+                    src={prompt.pictures[0]?.secure_url}
                     alt={prompt.title}
                     className="w-full lg:w-48 h-32 object-cover rounded-xl cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => handlePromptClick(prompt?.slug)}
@@ -200,10 +222,18 @@ const LikedPrompts = () => {
                           <Star className="w-3 h-3 fill-current" />
                           {prompt.rating}
                         </div>
+                        {prompt.isBiddable && (() => {
+                          const auctionStatus = getAuctionStatus(prompt._id, prompt.isBiddable);
+                          return auctionStatus.displayText ? (
+                            <span className={auctionStatus.statusClass}>
+                              {auctionStatus.displayText}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="flex items-center gap-2 mb-3">
-                        <img
-                          src={prompt?.craftor?.user?.avatar?.secure_url || '/api/placeholder/32/32'}
+                        <ImageWithFallback
+                          src={prompt?.craftor?.user?.avatar?.secure_url}
                           alt={prompt?.craftor?.user?.name}
                           className="w-6 h-6 rounded-full"
                         />

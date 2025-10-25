@@ -37,28 +37,28 @@ const App: React.FC = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
 
-            <Route path='/explore' element={<Explore/>}></Route>
-            <Route path='/view/:slug' element={<ViewPrompt/>}></Route>
-            <Route path='/help' element={<HelpSupport/>}></Route>
+            <Route path='/explore' element={<Explore />}></Route>
+            <Route path='/view/:slug' element={<ViewPrompt />}></Route>
+            <Route path='/help' element={<HelpSupport />}></Route>
 
 
             <Route element={<RequireAuth allowedRoles={["user", "craftor"]} />}>
               <Route path="/profile" element={<Profile />} />
-              <Route path='/favourites' element={<Favourites/>}></Route>
-              <Route path='/purchase-history/:email' element={<PurchaseHistory/>}></Route>            
-              <Route path='/bookmarks' element={<BookmarkedPrompts/>}></Route>
+              <Route path='/favourites' element={<Favourites />}></Route>
+              <Route path='/purchase-history/:email' element={<PurchaseHistory />}></Route>
+              <Route path='/bookmarks' element={<BookmarkedPrompts />}></Route>
             </Route>
 
             <Route element={<RequireAuth allowedRoles={["craftor"]} />}>
               <Route path="/craftor-profile/:slug" element={<CraftorProfile />} />
               <Route path="/craftor/billing" element={<Billing />} />
-              <Route path='/prompts/create' element={<CreatePrompt/>}></Route>
-              <Route path='/prompts/my' element={<MyPrompts/>} ></Route>
+              <Route path='/prompts/create' element={<CreatePrompt />}></Route>
+              <Route path='/prompts/my' element={<MyPrompts />} ></Route>
             </Route>
 
-            
-            <Route path='/denied' element={<Denied/>}></Route>
-            <Route path='*' element={<NotFoundPage/>}></Route>
+
+            <Route path='/denied' element={<Denied />}></Route>
+            <Route path='*' element={<NotFoundPage />}></Route>
           </Routes>
         </Suspense>
       </Router>

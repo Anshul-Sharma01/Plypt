@@ -28,7 +28,7 @@ passport.use(new GoogleStrategy({
                 user.googleId = profile.id;
                 if (!user.avatar?.secure_url) {
                     const defaultAvatar = 'https://www.shutterstock.com/image-vector/purple-user-icon-circle-shadow-260nw-1285676917.jpg';
-                    user.avatar = { 
+                    user.avatar = {
                         secure_url: profile.photos[0]?.value || defaultAvatar
                     };
                 }
@@ -36,7 +36,7 @@ passport.use(new GoogleStrategy({
             } else {
                 const username = email.split('@')[0];
                 const existingUser = await User.findOne({ username });
-                
+
                 if (existingUser) {
                     // If username exists, try appending numbers
                     let newUsername = username;
@@ -48,7 +48,7 @@ passport.use(new GoogleStrategy({
                 }
 
                 const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkMSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzNCODJGNjtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM4QjVDRjY7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZDEpIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cGF0aCBkPSJNMjAgNzUgUTIwIDYwIDM1IDYwIEw2NSA2MCBRODA2MCA4MCA3NSBMODAgODUgUTgwIDkwIDc1IDkwIEwyNSA5MCBRIDA5MCAyMCA4NSBaIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+PC9zdmc+';
-                
+
                 user = await User.create({
                     googleId: profile.id,
                     name: profile.displayName || username,
@@ -61,7 +61,7 @@ passport.use(new GoogleStrategy({
                 });
             }
         }
-        
+
         done(null, user);
     } catch (err) {
         console.error('Google auth error:', err);

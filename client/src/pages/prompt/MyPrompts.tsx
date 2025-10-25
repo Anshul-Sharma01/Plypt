@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { getMyPromptsThunk, deletePromptThunk } from '../../features/prompts/promptSlice';
 import { Link } from 'react-router-dom';
+import { useAuctionStatus } from '../../utils/auctionUtils';
 
 const ExplorePage = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -165,16 +166,19 @@ const ExplorePage = () => {
     createdAt: string;
   }
 
-  const PromptCard = ({ prompt }: { prompt: Prompt }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700">
-      <div className="relative h-12 flex items-center justify-between px-6 pt-6">
-        <div>
-          {prompt.isBiddable && (
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
-              Live Auction
-            </span>
-          )}
-        </div>
+  const PromptCard = ({ prompt }: { prompt: Prompt }) => {
+    const auctionStatus = useAuctionStatus(prompt._id, prompt.isBiddable);
+    
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700">
+        <div className="relative h-12 flex items-center justify-between px-6 pt-6">
+          <div>
+            {auctionStatus.displayText && (
+              <span className={auctionStatus.statusClass}>
+                {auctionStatus.displayText}
+              </span>
+            )}
+          </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleDeletePrompt(prompt._id, prompt.title)}
@@ -242,7 +246,8 @@ const ExplorePage = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const Pagination = () => (
     <div className="flex items-center justify-center gap-4 mt-12">

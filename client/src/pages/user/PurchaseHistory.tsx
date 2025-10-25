@@ -122,8 +122,8 @@ const ReceiptModal = ({ isOpen, onClose, purchase }) => {
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                 <div className="flex gap-4">
                   <img
-                    src={purchase.prompt.pictures[0]?.secure_url || '/api/placeholder/80/80'}
-                    alt={purchase.prompt.title}
+                    src={purchase?.prompt?.pictures[0]?.secure_url || '/api/placeholder/80/80'}
+                    alt={purchase?.prompt?.title}
                     className="w-20 h-20 object-cover rounded-lg"
                   />
                   <div className="flex-grow">
@@ -286,9 +286,9 @@ const PurchaseHistory = () => {
 
   useEffect(() => {
     let filtered = purchases.filter(purchase => {
-      const matchesSearch = purchase.prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            purchase.prompt.category.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || purchase.status === statusFilter;
+      const matchesSearch = purchase?.prompt?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            purchase?.prompt?.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'All' || purchase?.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
     if (sortBy === 'newest') {
@@ -352,11 +352,11 @@ const PurchaseHistory = () => {
   };
 
   const handleDownloadStart = (purchase) => {
-    console.log('Download started for:', purchase.prompt.title);
+    console.log('Download started for:', purchase?.prompt?.title);
   };
 
   const handleDownloadComplete = (purchase) => {
-    console.log('Download completed for:', purchase.prompt.title);
+    console.log('Download completed for:', purchase?.prompt?.title);
   };
 
   const handleShowReceipt = (purchase) => {
@@ -460,8 +460,8 @@ const PurchaseHistory = () => {
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
                       <img
-                        src={purchase.prompt.pictures[0]?.secure_url || '/api/placeholder/300/200'}
-                        alt={purchase.prompt.title}
+                        src={purchase?.prompt?.pictures[0]?.secure_url || '/api/placeholder/300/200'}
+                        alt={purchase?.prompt?.title}
                         className="w-full lg:w-48 h-32 object-cover rounded-xl"
                       />
                     </div>
@@ -469,21 +469,21 @@ const PurchaseHistory = () => {
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            {purchase.prompt.title}
+                            {purchase?.prompt?.title}
                           </h3>
                           <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
-                            {purchase.prompt.description}
+                            {purchase?.prompt?.description}
                           </p>
                           <div className="flex flex-wrap gap-2 mb-3">
                             <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded-full">
-                              {purchase.prompt.category}
+                              {purchase?.prompt?.category}
                             </span>
                             <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">
-                              {purchase.prompt.model}
+                              {purchase?.prompt?.model}
                             </span>
                             <div className="flex items-center gap-1 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs rounded-full">
                               <Star className="w-3 h-3 fill-current" />
-                              {purchase.prompt.rating}
+                              {purchase?.prompt?.rating}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 mb-3">

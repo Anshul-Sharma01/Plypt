@@ -135,7 +135,7 @@ const getAuctionStatusController = asyncHandler(async(req, res) => {
         let timeLeft = null;
         if(auctionStartTime && auctionEnded !== "true"){
             const startTime = new Date(auctionStartTime);
-            const endTime = new Date(startTime.getTime() + (20 * 60 * 1000)); // 20 minutes
+            const endTime = new Date(startTime.getTime() + (2 * 60 * 1000)); // 20 minutes
             const now = new Date();
             timeLeft = Math.max(0, endTime.getTime() - now.getTime());
         }
@@ -219,7 +219,7 @@ const getAuctionHistoryController = asyncHandler(async(req, res) => {
                 isEnded: auctionEnded === "true",
                 winnerId: winner,
                 startTime: auctionStartTime,
-                endTime: auctionStartTime ? new Date(new Date(auctionStartTime).getTime() + (20 * 60 * 1000)) : null
+                endTime: auctionStartTime ? new Date(new Date(auctionStartTime).getTime() + (2 * 60 * 1000)) : null
             }
         };
 

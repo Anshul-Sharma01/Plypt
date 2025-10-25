@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Bookmark, Filter, Search, Eye, Star, User, Clock, X, MapPin, Building } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Bookmark, Filter, Search, Eye, Star } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useDispatch } from 'react-redux';
 import { fetchMyBookmarksThunk, toggleBookmarkThunk } from '../../features/prompts/favouritesSlice'; 
 import type { AppDispatch } from '../../store';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
+import { getAuctionStatus } from '../../utils/auctionUtils';
 
 const GridBackground = () => (
   <div className="fixed inset-0 w-full h-full opacity-20 dark:opacity-10 pointer-events-none z-0">
@@ -14,28 +16,47 @@ const GridBackground = () => (
   </div>
 );
 
+interface BookmarkedPrompt {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  model: string;
+  rating: number;
+  price: number;
+  pictures: { secure_url: string }[];
+  craftor: {
+    user: {
+      name: string;
+      avatar: { secure_url: string };
+    };
+  };
+  slug: string;
+  bookmarkedAt: string;
+  isBiddable: boolean;
+}
+
 const BookmarkedPrompts = () => {
-  const [bookmarkedPrompts, setBookmarkedPrompts] = useState([]);
-  const [filteredPrompts, setFilteredPrompts] = useState([]);
+  const [bookmarkedPrompts, setBookmarkedPrompts] = useState<BookmarkedPrompt[]>([]);
+  const [filteredPrompts, setFilteredPrompts] = useState<BookmarkedPrompt[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [promptsCount, setPromptsCount] = useState(0);
-  const itemsPerPage = 10;
 
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     async function fetchBookmarkedPromptsData() {
       try {
-        const res = await dispatch(fetchMyBookmarksThunk({ page: currentPage, limit: itemsPerPage }));
+        const res = await dispatch(fetchMyBookmarksThunk());
         console.log("Res : ", res);
         if (currentPage === 1) {
           setBookmarkedPrompts(res?.payload?.data?.bookmarkedPrompts || []);
         } else {
-          setBookmarkedPrompts(prevPrompts => [...prevPrompts, ...res?.payload?.data?.bookmarkedPrompts] || []);
+          setBookmarkedPrompts(prevPrompts => [...prevPrompts, ...(res?.payload?.data?.bookmarkedPrompts || [])]);
         }
         setPromptsCount(res?.payload?.data?.count || 0);
       } catch (error) {
@@ -56,9 +77,9 @@ const BookmarkedPrompts = () => {
     });
 
     if (sortBy === 'newest') {
-      filtered.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
+      filtered.sort((a, b) => new Date(b.bookmarkedAt).getTime() - new Date(a.bookmarkedAt).getTime());
     } else if (sortBy === 'oldest') {
-      filtered.sort((a, b) => new Date(a.bookmarkedAt) - new Date(b.bookmarkedAt));
+      filtered.sort((a, b) => new Date(a.bookmarkedAt).getTime() - new Date(b.bookmarkedAt).getTime());
     } else if (sortBy === 'rating-high') {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'rating-low') {
@@ -71,44 +92,18 @@ const BookmarkedPrompts = () => {
     setFilteredPrompts(filtered);
   }, [searchTerm, categoryFilter, sortBy, bookmarkedPrompts]);
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getCurrencySymbol = (currency) => {
-    const symbols = {
-      'INR': '₹',
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'RUB': '₽'
-    };
-    return symbols[currency] || currency;
-  };
-
-  const handlePromptClick = (promptSlug) => {
-    // Replace this with your desired redirect logic
+  const handlePromptClick = (promptSlug: string) => {
     window.location.href = `/view/${promptSlug}`;
-
   };
 
   const handleLoadMore = () => {
     setCurrentPage(prevPage => prevPage + 1);
   };
 
-  const handleRemoveBookmark = async (promptId) => {
-    // Add your remove bookmark functionality here
+  const handleRemoveBookmark = async (promptId: string) => {
     try {
       await dispatch(toggleBookmarkThunk({ promptId }));
       setBookmarkedPrompts(prev => prev.filter(prompt => prompt._id !== promptId));
-      console.log('Prompt bookmark removed:', promptId);
     } catch (error) {
       console.error('Failed to remove bookmark:', error);
     }
@@ -204,8 +199,8 @@ const BookmarkedPrompts = () => {
                 <div key={prompt._id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
-                      <img
-                        src={prompt.pictures[0]?.secure_url || '/api/placeholder/300/200'}
+                      <ImageWithFallback
+                        src={prompt.pictures[0]?.secure_url}
                         alt={prompt.title}
                         className="w-full lg:w-48 h-32 object-cover rounded-xl cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => handlePromptClick(prompt?.slug)}
@@ -234,10 +229,18 @@ const BookmarkedPrompts = () => {
                               <Star className="w-3 h-3 fill-current" />
                               {prompt.rating}
                             </div>
+                            {prompt.isBiddable && (() => {
+                              const auctionStatus = getAuctionStatus(prompt._id, prompt.isBiddable);
+                              return auctionStatus.displayText ? (
+                                <span className={auctionStatus.statusClass}>
+                                  {auctionStatus.displayText}
+                                </span>
+                              ) : null;
+                            })()}
                           </div>
                           <div className="flex items-center gap-2 mb-3">
-                            <img
-                              src={prompt?.craftor?.user?.avatar?.secure_url || '/api/placeholder/32/32'}
+                            <ImageWithFallback
+                              src={prompt?.craftor?.user?.avatar?.secure_url}
                               alt={prompt?.craftor?.user?.name}
                               className="w-6 h-6 rounded-full"
                             />
