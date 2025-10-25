@@ -15,6 +15,7 @@ import { toggleLikeThunk } from '../../features/prompts/likeSlice';
 import { toggleBookmarkThunk } from '../../features/prompts/favouritesSlice';
 import Comments from '../../components/prompt/Comments';
 import RealTimeFeatures from '../../components/prompt/RealTimeFeatures';
+import Reviews from '../../components/prompt/Reviews';
 
 interface Craftor {
   _id: string;
@@ -25,7 +26,13 @@ interface Craftor {
 
 interface Review {
   _id: string;
-  user: {
+  user?: {
+    _id: string;
+    name: string;
+    avatar: string;
+  };
+  buyer?: {
+    _id: string;
     name: string;
     avatar: string;
   };
@@ -469,42 +476,19 @@ const ViewPrompt = () => {
                   </div>
                 )}
                 {/* Reviews */}
-                {prompt?.reviews && prompt.reviews.length > 0 && (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                      Reviews ({prompt?.reviews?.length || 0})
-                    </h2>
-                    <div className="space-y-4">
-                      {prompt?.reviews.map((review) => (
-                        <div key={review._id} className="border-b border-gray-200 dark:border-gray-600 pb-4 last:border-b-0">
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={review.user.avatar}
-                              alt={review.user.name}
-                              className="w-10 h-10 rounded-full"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-gray-900 dark:text-white">{review.user.name}</h4>
-                                <div className="flex items-center gap-1">
-                                  {Array.from({ length: 5 }, (_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`w-4 h-4 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600'
-                                        }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <p className="text-gray-600 dark:text-gray-300 text-sm mb-1">{review.comment}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(review.createdAt)}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <Reviews
+                  promptId={prompt?._id || ''}
+                  craftorId={prompt?.craftor?._id || ''}
+                  reviews={prompt?.reviews || []}
+                  canReview={Boolean(alreadyPurchased && !isCraftor)}
+                  currentUserId={userData?._id}
+
+                  onReviewUpdate={async () => {
+                    // Refresh prompt data to get updated reviews and rating
+                    const res = await dispatch(getPromptBySlugThunk({ slug }));
+                    setPrompt(res?.payload?.data?.prompt);
+                  }}
+                />
               </div>
               {/* Sidebar */}
               <div className="space-y-6">

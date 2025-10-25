@@ -117,6 +117,14 @@ const getPromptBySlugController = asyncHandler(async (req, res) => {
                 model: "User",
                 select: "avatar name",
             },
+        })
+        .populate({
+            path: "reviews",
+            populate: {
+                path: "buyer",
+                model: "User",
+                select: "name avatar",
+            },
         });
 
     if (!prompt) {

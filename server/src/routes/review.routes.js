@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { addReviewController, deleteReviewController } from "../controllers/review.controller.js";
+import { addReviewController, deleteReviewController, getReviewsForPromptController } from "../controllers/review.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+// Public route to get reviews
+router.route("/prompt/:promptId").get(getReviewsForPromptController);
 
 router.use(authMiddleware);
 

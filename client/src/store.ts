@@ -4,6 +4,7 @@ import craftorReducer from "./features/craftor/craftorSlice";
 import promptReducer from './features/prompts/promptSlice';
 import realtimeReducer from './features/realtime/realtimeSlice';
 import paymentReducer from './features/payment/paymentSlice';
+import reviewReducer from './features/prompts/reviewSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     prompt: promptReducer,
     craftor: craftorReducer,
     realtime: realtimeReducer,
-    payment: paymentReducer
+    payment: paymentReducer,
+    review: reviewReducer
   },
 });
 
