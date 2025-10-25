@@ -104,7 +104,8 @@ const purchasePromptController = asyncHandler(async (req, res) => {
             { 
                 receipt,
                 transaction : newTransaction,
-                promptId,  
+                promptId,
+                amount: amount * 100, // Return converted amount for client
             },
             "Prompt purchase initiated successfully"
         )

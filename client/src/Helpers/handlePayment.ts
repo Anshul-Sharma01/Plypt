@@ -6,7 +6,7 @@ import Razorpay from "razorpay";
 export const handlePayment = (orderId, amount, receipt, dispatch, navigate, userData) => {
     const options = {
         key : import.meta.env.VITE_RAZORPAY_KEY,
-        amount : amount * 100,
+        amount : amount,
         currency : "INR",
         name : "Plypt - AI Marketplace Plaftorm",
         description : `Order receipt : ${receipt}`,

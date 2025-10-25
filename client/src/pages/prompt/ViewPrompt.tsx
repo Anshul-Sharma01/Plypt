@@ -190,15 +190,16 @@ const ViewPrompt = () => {
     try {
       const res = await dispatch(initiatePurchaseForPrompt({
         promptId: prompt?._id,
-        amt: formData.price,
+        amt: prompt?.price || 0,
         currency: "INR"
       }));
-      
+
       if (res.type === 'purchase/new-order/fulfilled') {
         // Success case
         const razorpayOrderId = res?.payload?.data?.transaction?.razorpayOrderId;
         const receipt = res?.payload?.data?.receipt;
-        handlePayment(razorpayOrderId, formData?.price, receipt, dispatch, navigate, userData);
+        const convertedAmount = res?.payload?.data?.amount;
+        handlePayment(razorpayOrderId, convertedAmount, receipt, dispatch, navigate, userData);
       } else if (res.type === 'purchase/new-order/rejected') {
         // Check if it's a pending purchase error
         const payload = res.payload as any;
@@ -216,13 +217,14 @@ const ViewPrompt = () => {
     if (pendingPurchase && pendingPurchase.razorpayOrderId) {
       const razorpayOrderId = pendingPurchase.razorpayOrderId;
       const receipt = pendingPurchase.transaction?.orderId;
-      handlePayment(razorpayOrderId, formData?.price, receipt, dispatch, navigate, userData);
+      const convertedAmount = pendingPurchase.amount * 100; // Convert to paise for Razorpay
+      handlePayment(razorpayOrderId, convertedAmount, receipt, dispatch, navigate, userData);
     }
   };
 
   const handleCancelPendingPurchase = async () => {
     if (!prompt?._id) return;
-    
+
     try {
       await dispatch(cancelPendingPurchase(prompt._id));
       toast.success('Pending purchase cancelled. You can now start a new purchase.');

@@ -24,7 +24,7 @@ class RazorpayService{
                 throw new Error("Receipt is required");
             }
             const options = {
-                amount,
+                amount: amount * 100, // Convert to smallest currency unit (paise for INR)
                 currency, 
                 receipt
             }
