@@ -74,21 +74,25 @@ const createPromptController = asyncHandler(async (req, res) => {
     }
 
     await craftor.save();
-    // await fetch(`http://localhost:5000/api/v1/inngest/prompt/creation`, {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //         data: {
-    //             promptId: prompt._id.toString()
-    //         }
-    //     })
-    // });
+    
+    // Trigger Inngest event for AI review
+    try {
+        const eventId = await inngest.send({
+            name: "prompt/creation",
+            data: {
+                promptId: prompt._id.toString()
+            }
+        });
+        console.log(`✅ Inngest event sent successfully. Event IDs:`, eventId);
+    } catch (error) {
+        console.error(`❌ Failed to send Inngest event:`, error.message);
+        // Don't fail the request if Inngest fails - AI review can happen later
+    }
 
-
-    // console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
-
+    console.log(`Prompt ${prompt._id} created by user ${userId}, AI review triggered.`);
+    console.log("--------------------------------");
+    console.log("Prompt : ", prompt);
+    console.log("--------------------------------");
 
 
     return res.status(201)

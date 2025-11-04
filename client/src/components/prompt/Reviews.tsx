@@ -5,13 +5,16 @@ import type { AppDispatch } from '../../store';
 import { addReviewThunk, deleteReviewThunk, setReviews } from '../../features/prompts/reviewSlice';
 import toast from 'react-hot-toast';
 
-interface Review {
+interface ReviewUser {
   _id: string;
-  buyer: {
-    _id: string;
-    name: string;
-    avatar: string;
-  };
+  name: string;
+  avatar: string;
+}
+
+interface PromptReview {
+  _id: string;
+  user?: ReviewUser; // For backward compatibility with existing data
+  buyer?: ReviewUser; // New structure
   rating: number;
   comment: string;
   createdAt: string;
@@ -20,9 +23,11 @@ interface Review {
 interface ReviewsProps {
   promptId: string;
   craftorId: string;
-  reviews: Review[];
-  canReview: boolean; // Only users who purchased can review
+  reviews: PromptReview[];
+  canReview: boolean; 
   currentUserId?: string;
+
+  onReviewUpdate?: () => void; // Callback to refresh prompt data
 }
 
 const Reviews: React.FC<ReviewsProps> = ({ 
@@ -30,7 +35,9 @@ const Reviews: React.FC<ReviewsProps> = ({
   craftorId, 
   reviews, 
   canReview, 
-  currentUserId 
+  currentUserId,
+
+  onReviewUpdate
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isLoading } = useSelector((state: any) => state.review);
@@ -41,10 +48,17 @@ const Reviews: React.FC<ReviewsProps> = ({
     comment: ''
   });
 
-  // Set reviews in Redux store when component mounts or reviews prop changes
   useEffect(() => {
-    dispatch(setReviews(reviews));
-  }, [reviews, dispatch]);
+    // Convert reviews to the format expected by Redux store
+    const convertedReviews = reviews.map(review => ({
+      ...review,
+      buyer: review.buyer || review.user || { _id: '', name: '', avatar: '' },
+      craftor: '',
+      prompt: promptId,
+      updatedAt: review.createdAt
+    }));
+    dispatch(setReviews(convertedReviews));
+  }, [reviews, dispatch, promptId]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -63,7 +77,7 @@ const Reviews: React.FC<ReviewsProps> = ({
     }
 
     try {
-      await dispatch(addReviewThunk({
+      const result = await dispatch(addReviewThunk({
         craftorId,
         promptId,
         reviewData: {
@@ -72,8 +86,16 @@ const Reviews: React.FC<ReviewsProps> = ({
         }
       }));
       
-      setIsAddReviewOpen(false);
-      setReviewForm({ rating: 5, comment: '' });
+      // Only proceed if the review was added successfully
+      if (addReviewThunk.fulfilled.match(result)) {
+        setIsAddReviewOpen(false);
+        setReviewForm({ rating: 5, comment: '' });
+        
+        // Refresh prompt data to get updated reviews and rating
+        if (onReviewUpdate) {
+          onReviewUpdate();
+        }
+      }
     } catch (error) {
       console.error('Error adding review:', error);
     }
@@ -82,14 +104,25 @@ const Reviews: React.FC<ReviewsProps> = ({
   const handleDeleteReview = async (reviewId: string) => {
     if (window.confirm('Are you sure you want to delete this review?')) {
       try {
-        await dispatch(deleteReviewThunk(reviewId));
+        const result = await dispatch(deleteReviewThunk(reviewId));
+        
+        // Only proceed if the review was deleted successfully
+        if (deleteReviewThunk.fulfilled.match(result)) {
+          // Refresh prompt data to get updated reviews and rating
+          if (onReviewUpdate) {
+            onReviewUpdate();
+          }
+        }
       } catch (error) {
         console.error('Error deleting review:', error);
       }
     }
   };
 
-  const userHasReviewed = reviews.some(review => review.buyer._id === currentUserId);
+  const userHasReviewed = reviews.some(review => {
+    const reviewUser = review.buyer || review.user;
+    return reviewUser?._id === currentUserId;
+  });
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -193,19 +226,21 @@ const Reviews: React.FC<ReviewsProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {reviews.map((review) => (
+          {reviews.map((review) => {
+            const reviewUser = review.buyer || review.user;
+            return (
             <div key={review._id} className="border-b border-gray-200 dark:border-gray-600 pb-6 last:border-b-0">
               <div className="flex items-start gap-4">
                 <img
-                  src={review.buyer.avatar}
-                  alt={review.buyer.name}
+                  src={reviewUser?.avatar || ''}
+                  alt={reviewUser?.name || 'User'}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <h4 className="font-semibold text-gray-900 dark:text-white">
-                        {review.buyer.name}
+                        {reviewUser?.name || 'Anonymous'}
                       </h4>
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 5 }, (_, i) => (
@@ -224,7 +259,7 @@ const Reviews: React.FC<ReviewsProps> = ({
                       </span>
                     </div>
                     
-                    {currentUserId === review.buyer._id && (
+                    {currentUserId === reviewUser?._id && (
                       <button
                         onClick={() => handleDeleteReview(review._id)}
                         className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -241,7 +276,7 @@ const Reviews: React.FC<ReviewsProps> = ({
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

@@ -22,7 +22,14 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended : true }));
-app.use(morgan("dev"));
+
+// Custom morgan logger that skips Inngest sync requests
+app.use(morgan("dev", {
+    skip: (req, res) => {
+        // Skip logging PUT requests to /api/v1/inngest (sync requests)
+        return req.method === 'PUT' && req.path === '/api/v1/inngest';
+    }
+}));
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'defaultsecret',
