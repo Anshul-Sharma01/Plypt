@@ -467,17 +467,20 @@ const ViewPrompt = () => {
                   </div>
                 </div>
                 {/* AI Review */}
-                {prompt?.aiReview?.review && (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-blue-500" />
-                      AI Review
-                    </h2>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                      <span className="font-semibold text-gray-900 dark:text-white">{prompt?.aiReview.rating}</span>
+                {prompt?.aiReview?.review && prompt?.aiReview?.rating && (
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl shadow-lg border-2 border-blue-200 dark:border-blue-700 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                        AI Review
+                      </h2>
+                      <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-700">
+                        <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                        <span className="font-bold text-gray-900 dark:text-white">{prompt.aiReview.rating}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">/10</span>
+                      </div>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300">{prompt?.aiReview.review}</p>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{prompt.aiReview.review}</p>
                   </div>
                 )}
                 {/* Reviews */}

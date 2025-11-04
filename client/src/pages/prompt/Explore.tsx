@@ -139,10 +139,10 @@ const ExplorePage = () => {
     tags: string[];
     pictures: { secure_url: string }[];
     rating: number;
-    aiReview : {
-      review : string,
-      rating : number
-    }
+    aiReview?: {
+      review?: string;
+      rating?: number;
+    };
     craftor: { name: string; avatar: string };
     isBiddable: boolean;
     currentBid: number;
@@ -201,10 +201,12 @@ const ExplorePage = () => {
             />
             <span className="text-sm text-gray-600 dark:text-gray-300">{prompt?.craftor?.name}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">{prompt?.aiReview?.rating || 0}</span>
-          </div>
+          {prompt?.aiReview?.rating && (
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{prompt.aiReview.rating}/10</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

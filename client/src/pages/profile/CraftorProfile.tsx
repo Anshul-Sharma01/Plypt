@@ -22,6 +22,11 @@ export interface Prompt {
   price: number;
   pictures: Picture[];
   rating: number;
+  aiReview?: {
+    review?: string;
+    rating?: number;
+  };
+  slug?: string;
 }
 
 export interface CraftorData {
@@ -271,10 +276,13 @@ const CraftorProfile: React.FC = () => {
                             className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-transparent dark:from-gray-900/80"></div>
-                          <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                            <Star className="w-4 h-4 text-yellow-500 dark:text-yellow-400 fill-current" />
-                            <span className="text-gray-900 dark:text-white text-sm font-medium">{prompt?.rating}</span>
-                          </div>
+                          {prompt?.aiReview?.rating && (
+                            <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 border border-blue-200 dark:border-blue-700">
+                              <Star className="w-4 h-4 text-yellow-500 dark:text-yellow-400 fill-current" />
+                              <span className="text-gray-900 dark:text-white text-sm font-medium">{prompt.aiReview.rating}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">/10</span>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="p-6">

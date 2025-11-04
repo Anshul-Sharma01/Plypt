@@ -155,11 +155,11 @@ const ExplorePage = () => {
     tags: string[];
     pictures: { secure_url: string }[];
     rating: number;
-    aiReview : {
-      review : string,
-      rating : number
-    }
-    slug? : string,
+    aiReview?: {
+      review?: string;
+      rating?: number;
+    };
+    slug?: string;
     craftor: { name: string; avatar: string };
     isBiddable: boolean;
     currentBid: number;
@@ -220,12 +220,15 @@ const ExplorePage = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">{prompt?.aiReview?.rating || 0}</span>
+        {prompt?.aiReview?.rating && (
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{prompt.aiReview.rating}/10</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">AI Rated</span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
