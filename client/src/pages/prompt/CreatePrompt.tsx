@@ -1,5 +1,5 @@
 import React, { useState, useRef, use } from 'react';
-import { ChevronLeft, ChevronRight, Upload, X, Plus, Eye, EyeOff, Zap, Sparkles, Wand2, Code, PenTool, Palette, Megaphone, Briefcase, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Upload, X, Plus, Eye, EyeOff, Zap, Sparkles, Wand2, Code, PenTool, Palette, Megaphone, Briefcase, MoreHorizontal, Loader2 } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
@@ -37,6 +37,7 @@ const CreatePrompt = () => {
     isBiddable: false
   });
   const [newTag, setNewTag] = useState('');
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const fileInputRef = useRef(null);
   const totalSteps = 4;
@@ -185,9 +186,10 @@ const CreatePrompt = () => {
       return;
     }
 
-  
+    setIsGeneratingDescription(true);
     const prompt = `
-      You are an expert AI prompt engineer and content writer. Your task is to write a compelling, creative, and clear description for a prompt that will be listed on a marketplace platform called Plypt. The prompt title is: "${formData.title}"
+      You are an expert AI prompt engineer and content writer. Your task is to write a compelling, creative, and clear description for a prompt that will be listed on a marketplace platform called Plypt. The prompt title is: "${formData.title}" ${formData.description ? `The prompt Description is: ${formData.description}` : ''}
+
       
       The description should:
       1. Explain the intent or purpose behind the prompt.
@@ -200,7 +202,7 @@ const CreatePrompt = () => {
       
       Output format:
       Prompt Title: ${formData.title}
-      Description:
+      Description :
       `;
   
     try {
@@ -227,14 +229,17 @@ const CreatePrompt = () => {
   
         handleInputChange('description', finalDesc);
         toast.success("AI description generated successfully!");
+        setIsGeneratingDescription(false);
       } else {
         toast.error("Failed to generate description.");
         console.error('No valid response from Gemini:', data);
+        setIsGeneratingDescription(false);
       }
   
     } catch (error) {
       console.error("Gemini API error:", error);
       toast.error("Something went wrong while generating description.");
+      setIsGeneratingDescription(false);
     }
   };
   
@@ -336,7 +341,7 @@ const CreatePrompt = () => {
                     onClick={generateDescriptionWithAI}
                     className="absolute right-3 bottom-3 p-3 bg-gradient-to-r from-purple-600 to-violet-600 rounded-xl text-white hover:from-purple-700 hover:to-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
-                    <Sparkles className="w-5 h-5" />
+                    {isGeneratingDescription ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
