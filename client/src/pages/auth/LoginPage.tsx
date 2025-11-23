@@ -5,6 +5,7 @@ import { type RootState, type AppDispatch } from '../../store';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Cookies from "js-cookie";
+import toast from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,7 +17,10 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) navigate('/');
+    if (isLoggedIn){
+      toast("You are already logged In !!");
+      navigate("/");
+    }
   }, [isLoggedIn, navigate]);
 
   // Handle Google OAuth success redirect

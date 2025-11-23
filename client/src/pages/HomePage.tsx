@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, Users, Zap, ArrowRight, Star, Clock, DollarSign, Shield, MessageCircle, Trophy, Sparkles, Globe, CheckCircle } from 'lucide-react';
+import { Search, TrendingUp, Users, Zap, ArrowRight, Star, Clock, DollarSign, Shield, MessageCircle, Trophy, Sparkles, Globe, CheckCircle, Loader2 } from 'lucide-react';
 import NavigationLayout from '../layouts/NavigationLayout';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../helpers/axiosInstance';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [currentStats, setCurrentStats] = useState({ prompts: 2547, craftors: 1284, sales: 15723 });
+  const [featuredPrompts, setFeaturedPrompts] = useState<any[]>([]);
+  const [isLoadingPrompts, setIsLoadingPrompts] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -15,6 +20,24 @@ const HomePage = () => {
     }, 3000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch real prompts from API
+  useEffect(() => {
+    const fetchFeaturedPrompts = async () => {
+      try {
+        setIsLoadingPrompts(true);
+        const response = await axiosInstance.get('/prompt/explore?page=1&limit=6');
+        const prompts = response.data?.data?.prompts || [];
+        setFeaturedPrompts(prompts.slice(0, 6)); // Get top 6 prompts
+      } catch (error) {
+        console.error('Error fetching prompts:', error);
+      } finally {
+        setIsLoadingPrompts(false);
+      }
+    };
+
+    fetchFeaturedPrompts();
   }, []);
 
   const GridBackground = () => (
@@ -42,11 +65,7 @@ const HomePage = () => {
     </div>
   );
 
-  const featuredPrompts = [
-    { title: "AI Art Generator Prompts", price: "$25", bids: 12, timeLeft: "2h 15m", rating: 4.8 },
-    { title: "ChatGPT Business Templates", price: "$18", bids: 8, timeLeft: "4h 30m", rating: 4.9 },
-    { title: "Midjourney Style Pack", price: "$35", bids: 15, timeLeft: "1h 45m", rating: 4.7 },
-  ];
+
 
   const testimonials = [
     { name: "Sarah Chen", role: "Digital Artist", content: "Plypt changed how I monetize my AI prompts. The bidding system is addictive!", avatar: "SC" },
@@ -86,11 +105,17 @@ const HomePage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center gap-3">
+                <button 
+                  onClick={() => navigate('/explore')}
+                  className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center gap-3"
+                >
                   Start Exploring
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-4 border-2 border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105">
+                <button 
+                  onClick={() => navigate('/profile')}
+                  className="px-8 py-4 border-2 border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105"
+                >
                   Become a Craftor
                 </button>
               </div>
@@ -159,46 +184,122 @@ const HomePage = () => {
         <section className="py-20 dark:bg-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-4">Featured Auctions</h2>
+              <h2 className="text-4xl font-bold mb-4">
+                {featuredPrompts.length > 0 ? 'Featured Prompts' : 'Trending Prompts'}
+              </h2>
               <p className="text-xl max-w-2xl mx-auto text-gray-600 dark:text-gray-300">
-                Live bidding on premium AI prompts from top Craftors
+                {featuredPrompts.length > 0 
+                  ? 'Discover premium AI prompts from top Craftors' 
+                  : 'Be the first to create and share amazing AI prompts'}
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {featuredPrompts.map((prompt, i) => (
-                <div key={i} className="rounded-2xl p-6 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 hover:shadow-xl">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-lg">{prompt.title}</h3>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">{prompt.rating}</span>
+            {isLoadingPrompts ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
+              </div>
+            ) : featuredPrompts.length > 0 ? (
+              <div className="grid md:grid-cols-3 gap-8">
+                {featuredPrompts.map((prompt) => (
+                  <div 
+                    key={prompt._id} 
+                    onClick={() => navigate(`/prompt/${prompt.slug}`)}
+                    className="rounded-2xl p-6 transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-800 hover:shadow-xl cursor-pointer"
+                  >
+                    {/* Prompt Image */}
+                    {prompt.pictures && prompt.pictures.length > 0 && (
+                      <div className="mb-4 rounded-xl overflow-hidden aspect-video">
+                        <img 
+                          src={prompt.pictures[0].secure_url} 
+                          alt={prompt.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-bold text-lg line-clamp-2">{prompt.title}</h3>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm">{prompt.rating?.toFixed(1) || '0.0'}</span>
+                      </div>
+                    </div>
+
+                    {/* Category & Model Tags */}
+                    <div className="flex gap-2 mb-4">
+                      <span className="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
+                        {prompt.category}
+                      </span>
+                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                        {prompt.model}
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                      {prompt.description}
+                    </p>
+
+                    <div className="space-y-3">
+                      {prompt.isBiddable ? (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-300">Current Bid</span>
+                            <span className="font-bold text-green-500">${prompt.currentBid || prompt.price}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                            <Clock className="w-4 h-4" />
+                            <span>Live Auction</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">Price</span>
+                          <span className="font-bold text-purple-600 dark:text-purple-400">${prompt.price}</span>
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/prompt/${prompt.slug}`);
+                        }}
+                        className="w-full mt-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                      >
+                        {prompt.isBiddable ? 'View Auction' : 'View Details'}
+                      </button>
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">Current Bid</span>
-                      <span className="font-bold text-green-500">{prompt.price}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">Bids</span>
-                      <span className="font-semibold">{prompt.bids}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">Time Left</span>
-                      <span className="font-semibold text-red-500">{prompt.timeLeft}</span>
-                    </div>
-
-                    <button className="w-full mt-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
-                      Place Bid
-                    </button>
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="mb-6">
+                  <Sparkles className="w-16 h-16 mx-auto text-purple-600 opacity-50" />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-2xl font-bold mb-4">No Prompts Yet</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto">
+                  Be the first to create amazing AI prompts and start earning! The marketplace is waiting for your creativity.
+                </p>
+                <button 
+                  onClick={() => navigate('/profile')}
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-lg transition-all duration-300"
+                >
+                  Create Your First Prompt
+                </button>
+              </div>
+            )}
+
+            {featuredPrompts.length > 0 && (
+              <div className="text-center mt-12">
+                <button 
+                  onClick={() => navigate('/explore')}
+                  className="group px-8 py-4 border-2 border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white rounded-full font-semibold text-lg transition-all duration-300 flex items-center gap-2 mx-auto"
+                >
+                  View All Prompts
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -295,11 +396,17 @@ const HomePage = () => {
               Join thousands of creators and buyers in the world's most dynamic AI prompt marketplace
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-white text-gray-800 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="px-8 py-4 bg-white text-gray-800 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300"
+              >
                 Sign Up Now
               </button>
-              <button className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-gray-800 transition-all duration-300">
-                Learn More
+              <button 
+                onClick={() => navigate('/explore')}
+                className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-gray-800 transition-all duration-300"
+              >
+                Explore Prompts
               </button>
             </div>
           </div>

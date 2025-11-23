@@ -3,13 +3,13 @@ import { Eye, EyeOff, User, Mail, Lock, Camera, ArrowLeft, ArrowRight, Check, X 
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { createUserAccount } from '../../features/user/userSlice';
-import type { AppDispatch } from '../../store';
+import type { RootState, AppDispatch } from '../../store';
+import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
 
 const SignupPage: React.FC = () => {
-  // Mock state for demo - replace with actual Redux logic
-  const loading = false;
-  const error = null;
-  const isLoggedIn = false;
+  const { loading, error, isLoggedIn } = useSelector((state: RootState) => state.user);
+
   const dispatch = useDispatch<AppDispatch>();
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,12 +34,12 @@ const SignupPage: React.FC = () => {
     special: false,
   });
   const navigate = useNavigate();
-  // Mock navigation for demo - replace with actual navigation
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      console.log('Would navigate to home page');
+  useEffect(() => {
+    if (isLoggedIn){
+      toast("You are already logged in !!")
+      navigate('/');
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     const password = form.password;
