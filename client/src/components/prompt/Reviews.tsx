@@ -49,16 +49,18 @@ const Reviews: React.FC<ReviewsProps> = ({
   });
 
   useEffect(() => {
-    // Convert reviews to the format expected by Redux store
-    const convertedReviews = reviews.map(review => ({
-      ...review,
-      buyer: review.buyer || review.user || { _id: '', name: '', avatar: '' },
-      craftor: '',
-      prompt: promptId,
-      updatedAt: review.createdAt
-    }));
-    dispatch(setReviews(convertedReviews));
-  }, [reviews, dispatch, promptId]);
+    // Only update Redux store if we have reviews and they're different
+    if (reviews && Array.isArray(reviews)) {
+      const convertedReviews = reviews.map(review => ({
+        ...review,
+        buyer: review.buyer || review.user || { _id: '', name: '', avatar: '' },
+        craftor: '',
+        prompt: promptId,
+        updatedAt: review.createdAt
+      }));
+      dispatch(setReviews(convertedReviews));
+    }
+  }, [promptId]); // Only depend on promptId to avoid infinite loops
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

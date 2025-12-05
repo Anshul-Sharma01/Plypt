@@ -67,14 +67,14 @@ const createPromptController = asyncHandler(async (req, res) => {
     craftor.prompts.push(prompt);
     if (craftor.tier == 'Basic' && craftor.prompts.length >= 5) {
         craftor.tier = 'Basic-Advanced';
-    }else if(craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length >= 10){
+    } else if (craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length >= 10) {
         craftor.tier = 'Pro';
-    }else if(craftor.tier == 'Pro' && craftor?.prompts?.length >= 20){
+    } else if (craftor.tier == 'Pro' && craftor?.prompts?.length >= 20) {
         craftor.tier = 'Elite';
     }
 
     await craftor.save();
-    
+
     // Trigger Inngest event for AI review
     try {
         const eventId = await inngest.send({
@@ -544,12 +544,12 @@ const deletePromptController = asyncHandler(async (req, res) => {
     }
 
     await Prompt.findByIdAndDelete(promptId);
-    
+
     if (craftor.tier == 'Elite' && craftor.prompts.length < 20) {
         craftor.tier = 'Pro';
-    }else if(craftor.tier == 'Pro' && craftor?.prompts?.length < 10){
+    } else if (craftor.tier == 'Pro' && craftor?.prompts?.length < 10) {
         craftor.tier = 'Basic-Advanced';
-    }else if(craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length < 5){
+    } else if (craftor.tier == 'Basic-Advanced' && craftor?.prompts?.length < 5) {
         craftor.tier = 'Basic';
     }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Star, Eye, Heart, Share2, Calendar, Tag, ShoppingCart, Clock, CheckCircle, Edit, Trash2, Plus, X, Copy, Facebook, Twitter, Linkedin, Bookmark } from 'lucide-react';
 import NavigationLayout from '../../layouts/NavigationLayout';
 import { useSelector } from 'react-redux';
@@ -133,6 +133,11 @@ const ViewPrompt = () => {
   const reviewsFromRedux = useSelector((state: any) => state?.review?.reviews);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  // Memoize reviews to prevent infinite re-renders
+  const reviewsToDisplay = useMemo(() => {
+    return reviewsFromRedux.length > 0 ? reviewsFromRedux : (prompt?.reviews || []);
+  }, [reviewsFromRedux, prompt?.reviews]);
 
   useEffect(() => {
     if (userData && prompt) {
@@ -341,7 +346,7 @@ const ViewPrompt = () => {
                       <div className="flex items-center gap-2">
                         <Star className="w-5 h-5 text-yellow-500 fill-current" />
                         <span className="font-semibold text-gray-900 dark:text-white">{prompt?.rating}</span>
-                        <span className="text-gray-500 dark:text-gray-400">({reviewsFromRedux.length > 0 ? reviewsFromRedux.length : (prompt?.reviews?.length || 0)} reviews)</span>
+                        <span className="text-gray-500 dark:text-gray-400">({reviewsToDisplay.length} reviews)</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                         <Calendar className="w-4 h-4" />
@@ -487,7 +492,7 @@ const ViewPrompt = () => {
                 <Reviews
                   promptId={prompt?._id || ''}
                   craftorId={prompt?.craftor?._id || ''}
-                  reviews={reviewsFromRedux.length > 0 ? reviewsFromRedux : (prompt?.reviews || [])}
+                  reviews={reviewsToDisplay}
                   canReview={Boolean(alreadyPurchased && !isCraftor)}
                   currentUserId={userData?._id}
                   onReviewUpdate={async () => {
@@ -622,7 +627,7 @@ const ViewPrompt = () => {
 
             {/* Comments Section */}
             <div className="mt-8">
-              <Comments promptId={prompt?._id || ''} totalComments={reviewsFromRedux.length > 0 ? reviewsFromRedux.length : (prompt?.reviews?.length || 0)} />
+              <Comments promptId={prompt?._id || ''} totalComments={reviewsToDisplay.length} />
             </div>
           </div>
         </div>
